@@ -6,10 +6,14 @@ go-callflow-vis是一个命令行工具，专为分析Golang项目中指定函�
 
 go-callflow-vis的一个核心概念是调用层级。例如，在一个常见的HTTP业务服务端中，一个可能的调用层级是：
 
-ApiHandle (API抽象)
-BizOperator (业务流程抽象)
-BizManager (业务对象抽象)
+ApiHandle (API抽象)->
+
+BizOperator (业务流程抽象)->
+
+BizManager (业务对象抽象)->
+
 DAO (数据访问层抽象)
+
 此工具允许你指定每一层的核心函数，包括每个调用层级中需要包含的函数或一类函数。
 
 #### 特性
