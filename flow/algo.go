@@ -12,6 +12,29 @@ func (f *Flow) resetCallgraphIR() error {
 	return cache.GetFury().Unmarshal(f.furyBuffer, &f.callgraph)
 }
 
+func (f *Flow) GetMinNodeSet() (map[*ir.Node]bool, error) {
+	minNodeSet := make(map[*ir.Node]bool)
+	if f == nil {
+		return nil, errors.New("flow is nil")
+	}
+	if len(f.Layers) < 2 {
+		return nil, errors.New("number of layers must be at least 2")
+	}
+	for i, _ := range f.Layers {
+		if i == len(f.Layers)-1 {
+			continue
+		}
+		startNodes := f.Layers[i].GetOutAllNodeSet(f.callgraph)
+		endNodes := f.Layers[i+1].GetInAllNodeSet(f.callgraph)
+		nodeSet, _ := f.findReachableNodesIR(startNodes, endNodes, nil)
+		for k, _ := range nodeSet {
+			minNodeSet[k] = true
+		}
+	}
+	f.resetLayer()
+	return minNodeSet, nil
+}
+
 func (f *Flow) findAllBipartite() error {
 	if f == nil {
 		return errors.New("flow is nil")
@@ -150,7 +173,7 @@ func (f *Flow) skipNodeIR(issueFuncs map[string]bool) (hasFound, hasDoSkip bool)
 	for _, v := range nodeToSkip.Out {
 		cacheOut = append(cacheOut, v)
 	}
-	f.callgraph.DeleteNode(nodeToSkip)
+	f.callgraph = f.callgraph.DeleteNode(nodeToSkip)
 	for _, in := range cacheIn {
 		for _, out := range cacheOut {
 			if in.Caller == nil || out.Callee == nil ||
@@ -167,8 +190,8 @@ func (f *Flow) skipNodeIR(issueFuncs map[string]bool) (hasFound, hasDoSkip bool)
 				doMerge = true
 			}
 			mergedSite := &ir.Site{
-				Name: fmt.Sprintf("%s->%s->%s", in.Site.Name, nodeToSkip.Func.Name, out.Site.Name),
-				Addr: fmt.Sprintf("%s->%s->%s", in.Site.Addr, nodeToSkip.Func.Addr, out.Site.Addr),
+				Name: fmt.Sprintf("%s->Skip(%s)->%s", in.Site.Name, nodeToSkip.Func.Name, out.Site.Name),
+				Addr: fmt.Sprintf("%s->Skip(%s)->%s", in.Site.Addr, nodeToSkip.Func.Addr, out.Site.Addr),
 			}
 			if doMerge {
 				f.callgraph.AddEdge(inCallerFuncAddr, outCalleeFuncAddr, mergedSite)

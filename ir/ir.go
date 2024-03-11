@@ -5,6 +5,8 @@ import (
 	"github.com/laindream/go-callflow-vis/render"
 	"github.com/laindream/go-callflow-vis/util"
 	"golang.org/x/tools/go/callgraph"
+	"math"
+	"strings"
 	"unsafe"
 )
 
@@ -24,10 +26,8 @@ func (c *Callgraph) AddEdge(callerFn, calleeFn string, site *Site) {
 		Site:   site,
 		Callee: callee,
 	}
-	callee.In = append(callee.In, edge)
-	//callee.AddEnhancementIn(edge)
-	caller.Out = append(caller.Out, edge)
-	//caller.AddEnhancementOut(edge)
+	callee.AddIn(edge)
+	caller.AddOut(edge)
 }
 
 func (c *Callgraph) ResetSearched() {
@@ -38,12 +38,22 @@ func (c *Callgraph) ResetSearched() {
 	return
 }
 
-func (c *Callgraph) DeleteNode(n *Node) {
+func (c *Callgraph) DeleteNode(n *Node) *Callgraph {
+	inOutNumMultiplier := len(n.In) * len(n.Out)
+	inOutNumAdder := len(n.In) + len(n.Out)
+	nodeRate := len(c.Nodes) * int(math.Sqrt(float64(len(c.Nodes))))
+	if inOutNumMultiplier > nodeRate ||
+		inOutNumAdder*inOutNumAdder > nodeRate {
+		return GetFilteredCallgraph(c, func(s string) bool {
+			return s != n.Func.Name
+		})
+	}
 	n.DeleteIns()
 	n.DeleteOuts()
 	if n.Func != nil {
 		delete(c.Nodes, n.Func.Addr)
 	}
+	return c
 }
 
 func ConvertToIR(graph *callgraph.Graph) *Callgraph {
@@ -316,6 +326,8 @@ type Node struct {
 	Out                 []*Edge
 	humanReadableInMap  map[string]*Edge
 	humanReadableOutMap map[string]*Edge
+	inMap               map[string]*Edge
+	outMap              map[string]*Edge
 	searched            bool
 	path                []*Edge
 	tags                map[string]bool
@@ -357,6 +369,39 @@ func (n *Node) UpdateHumanReadableMap() {
 	for i, _ := range n.Out {
 		n.humanReadableOutMap[n.Out[i].ReadableString()] = n.Out[i]
 	}
+}
+
+func (n *Node) UpdateInOutMap() {
+	n.inMap = make(map[string]*Edge)
+	for i, _ := range n.In {
+		n.inMap[n.In[i].String()] = n.In[i]
+	}
+	n.outMap = make(map[string]*Edge)
+	for i, _ := range n.Out {
+		n.outMap[n.Out[i].String()] = n.Out[i]
+	}
+}
+
+func (n *Node) AddIn(e *Edge) {
+	if len(n.inMap) == 0 {
+		n.UpdateInOutMap()
+	}
+	if _, ok := n.inMap[e.String()]; ok {
+		return
+	}
+	n.inMap[e.String()] = e
+	n.In = append(n.In, e)
+}
+
+func (n *Node) AddOut(e *Edge) {
+	if len(n.outMap) == 0 {
+		n.UpdateInOutMap()
+	}
+	if _, ok := n.outMap[e.String()]; ok {
+		return
+	}
+	n.outMap[e.String()] = e
+	n.Out = append(n.Out, e)
 }
 
 func (n *Node) AddEnhancementIn(e *Edge) {
@@ -471,6 +516,9 @@ func (e *Edge) ReadableString() string {
 	siteName := ""
 	if e.Site != nil {
 		siteName = e.Site.Name
+		if strings.Contains(siteName, "->Skip(") {
+			siteName = "Skip()"
+		}
 	}
 	calleeFuncName := ""
 	if e.Callee != nil && e.Callee.Func != nil {
@@ -490,6 +538,9 @@ func (e *Edge) String() string {
 	siteAddr := ""
 	if e.Site != nil {
 		siteAddr = e.Site.Addr
+		if strings.Contains(siteAddr, "->Skip(") {
+			siteAddr = "Skip()"
+		}
 	}
 	calleeFuncAddr := ""
 	if e.Callee != nil && e.Callee.Func != nil {

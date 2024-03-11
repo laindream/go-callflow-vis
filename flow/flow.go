@@ -40,7 +40,11 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
 		callgraph: callGraph,
 		Layers:    layers,
 	}
-	err := f.initFuryBuffer()
+	err := f.UpdateMinGraph()
+	if err != nil {
+		return nil, err
+	}
+	err = f.initFuryBuffer()
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +78,7 @@ func (f *Flow) resetLayer() {
 		l.ResetLayer()
 	}
 }
+
 func (f *Flow) printConfig() {
 	for i, _ := range f.Layers {
 		fmt.Printf("Layers[%d].GetInAllNodeSetOnlyRead(a.callgraphIR):%d\n", i, len(f.Layers[i].GetInAllNodeSetOnlyRead(f.callgraph)))
@@ -82,6 +87,25 @@ func (f *Flow) printConfig() {
 		fmt.Printf("Layers[%d].GetStartAndEndFromExamplePath():start:%d,end:%d\n\n", i, len(start), len(end))
 	}
 }
+
+func (f *Flow) UpdateMinGraph() error {
+	minSet, err := f.GetMinNodeSet()
+	if err != nil {
+		return err
+	}
+	funcNameSet := make(map[string]bool)
+	for n, _ := range minSet {
+		if n.Func == nil {
+			continue
+		}
+		funcNameSet[n.Func.Name] = true
+	}
+	f.callgraph = ir.GetFilteredCallgraph(f.callgraph, func(funcName string) bool {
+		return funcNameSet[funcName]
+	})
+	return nil
+}
+
 func (f *Flow) Generate() error {
 	if f.isCompleteGenerate {
 		return nil

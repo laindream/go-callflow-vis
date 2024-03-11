@@ -165,33 +165,3 @@ func (a *Analysis) FilterCallGraph() {
 		fmt.Printf("Analysis.FilterCallGraph cache set error: %v\n", err)
 	}
 }
-
-func (a *Analysis) TrimCallGraph() {
-	cacheKey := fmt.Sprintf("%s_trim_%s", a.GetCacheKeyPrefix(), util.GetHash(a.config))
-	var cacheObj *ir.Callgraph
-	err := a.cache.Get(cacheKey, &cacheObj)
-	if err == nil && cacheObj != nil {
-		fmt.Printf("Analysis.TrimCallGraph: cache hit: %s\n", cacheKey)
-		a.callgraph = cacheObj
-		return
-	}
-	if a.callgraph == nil {
-		fmt.Printf("Analysis.TrimCallGraph: callgraph is nil\n")
-		return
-	}
-	nodesToTrim := make(map[*ir.Node]bool)
-	for i, _ := range a.callgraph.Nodes {
-		if a.callgraph.Nodes[i] != nil && a.callgraph.Nodes[i].Func != nil &&
-			(!a.config.Focus.Match(a.callgraph.Nodes[i].Func.Name) ||
-				a.config.Ignore.Match(a.callgraph.Nodes[i].Func.Name)) {
-			nodesToTrim[a.callgraph.Nodes[i]] = true
-		}
-	}
-	for i, _ := range nodesToTrim {
-		a.callgraph.DeleteNode(i)
-	}
-	err = a.cache.Set(cacheKey, a.callgraph)
-	if err != nil {
-		fmt.Printf("Analysis.TrimCallGraph cache set error: %v\n", err)
-	}
-}
