@@ -1,0 +1,60 @@
+#focus: function set that you want to focus on
+[[focus]]
+# supported match mode: prefix, suffix, contain, full, regex
+type = "prefix"
+content = "a/b/c"
+
+[[focus]]
+type = "suffix"
+content = "a/b/c"
+
+[[focus]]
+type = "contain"
+content = "a/b/c"
+
+[[focus]]
+type = "full"
+content = "a/b/c"
+
+[[focus]]
+type = "regex"
+content = "a/b/c"
+
+#ignore: function set that you want to ignore
+[[ignore]]
+type = "contain"
+content = "a/b/c"
+
+[[ignore]]
+type = "contain"
+content = "a/b/c"
+
+#layer: layer1 of function set
+[[layer]]
+name = "Layer1"
+[[layer.entities]]
+name = { type = "contain", content = "a/b/c.func1"}
+[[layer.entities]]
+name = { type = "contain", content = "a/b/c.func1"}
+
+
+#layer: layer2 of function set
+[[layer]]
+name = "Layer2"
+[[layer.entities]]
+signature = { type = "contain", content = "master"}
+in_site = { type = "contain", content = ", false:bool)"}
+[[layer.entities]]
+# supported filter function feature: name, signature, in_site, out_site
+signature = { type = "contain", content = "master"}
+in_site = { type = "contain", content = ", true:bool)"}
+out_site = { type = "contain", content = ", false:bool)"}
+
+
+#layer: layer3 of function set
+[[layer]]
+name = "Layer3"
+[[layer.entities]]
+name = { type = "contain", content = "a/b/c.func2"}
+[[layer.entities]]
+name = { type = "contain", content = "a/b/c.func2"}
