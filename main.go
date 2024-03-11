@@ -21,6 +21,8 @@ const Usage = `usage...
 
 var (
 	webFlag       = flag.Bool("web", false, "Output an index.html with graph data embedded instead of raw JSON")
+	webHost       = flag.String("web-host", "localhost", "Host to serve the web interface on")
+	webPort       = flag.String("web-port", "5678", "Port to serve the web interface on")
 	testFlag      = flag.Bool("tests", false, "Consider tests files as entry points for call-graph")
 	queryDir      = flag.String("query-dir", "", "Directory to query from for go packages. Current dir if empty")
 	cacheDir      = flag.String("cache-dir", "", "Directory to store cache files")
@@ -104,8 +106,8 @@ func main() {
 		r.StaticFS("/render/graph", http.FS(renderGraph))
 		renderDot, _ := fs.Sub(FS, "static/dot")
 		r.StaticFS("/render/dot", http.FS(renderDot))
-		go openBrowser("http://localhost:5678/render/dot/")
-		r.Run(":5678")
+		go openBrowser(fmt.Sprintf("http://%s:%s/render/dot/", *webHost, *webPort))
+		r.Run(fmt.Sprintf("%s:%s", *webHost, *webPort))
 	}
 }
 
