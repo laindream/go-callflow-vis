@@ -333,11 +333,11 @@ type Node struct {
 	tags                map[string]bool
 }
 
-func (n *Node) ToRenderNode() *render.Node {
+func (n *Node) ToRenderNode(prefix string) *render.Node {
 	return &render.Node{
 		ID:     n.ID,
 		Set:    -1,
-		Name:   util.GetFuncSimpleName(n.Func.Name),
+		Name:   util.GetFuncSimpleName(n.Func.Name, prefix),
 		Detail: n.Func.Name,
 	}
 }
@@ -496,11 +496,11 @@ type Edge struct {
 	Callee *Node
 }
 
-func (e *Edge) ToRenderEdge() *render.Edge {
+func (e *Edge) ToRenderEdge(prefix string) *render.Edge {
 	return &render.Edge{
 		From:   e.Caller.ID,
 		To:     e.Callee.ID,
-		Name:   util.GetSiteSimpleName(e.Site.Name),
+		Name:   util.GetSiteSimpleName(e.Site.Name, prefix),
 		Detail: e.Site.Name,
 	}
 }

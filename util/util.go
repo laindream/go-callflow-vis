@@ -9,18 +9,18 @@ import (
 	"strings"
 )
 
-func GetFuncSimpleName(name string) string {
-	if strings.Contains(name, ".") {
-		return name[strings.LastIndex(name, ".")+1:]
-	}
-	return name
+func GetFuncSimpleName(name, prefix string) string {
+	//if strings.Contains(name, ".") {
+	//	return name[strings.LastIndex(name, ".")+1:]
+	//}
+	return strings.ReplaceAll(name, prefix, "")
 }
 
-func GetSiteSimpleName(name string) string {
-	if strings.Contains(name, "(") {
-		return name[:strings.Index(name, "(")]
-	}
-	return name
+func GetSiteSimpleName(name, prefix string) string {
+	//if strings.Contains(name, "(") {
+	//	return name[:strings.Index(name, "(")]
+	//}
+	return strings.ReplaceAll(name, prefix, "")
 }
 
 func Escape(escape string) string {

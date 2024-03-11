@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	Focus  mode.ModeSet `toml:"focus" json:"focus"`
-	Ignore mode.ModeSet `toml:"ignore" json:"ignore"`
-	Layers []*Layer     `toml:"layer" json:"-"`
+	PackagePrefix string       `toml:"package_prefix" json:"-"`
+	Focus         mode.ModeSet `toml:"focus" json:"focus"`
+	Ignore        mode.ModeSet `toml:"ignore" json:"ignore"`
+	Layers        []*Layer     `toml:"layer" json:"-"`
 }
 
 type Layer struct {

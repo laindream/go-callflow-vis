@@ -37,6 +37,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
 		layers = append(layers, layer)
 	}
 	f := &Flow{
+		pkgPrefix: config.PackagePrefix,
 		callgraph: callGraph,
 		Layers:    layers,
 	}
@@ -52,6 +53,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
 }
 
 type Flow struct {
+	pkgPrefix          string
 	furyBuffer         []byte
 	callgraph          *ir.Callgraph
 	allIssueFuncs      map[string]bool
@@ -156,9 +158,9 @@ func (f *Flow) GetRenderGraph() *render.Graph {
 		for k, _ := range l.ExamplePath {
 			for k2, _ := range l.ExamplePath[k] {
 				for _, e := range l.ExamplePath[k][k2] {
-					edges[e.String()] = e.ToRenderEdge()
-					nodes[e.Caller.Func.Addr] = e.Caller.ToRenderNode()
-					nodes[e.Callee.Func.Addr] = e.Callee.ToRenderNode()
+					edges[e.String()] = e.ToRenderEdge(f.pkgPrefix)
+					nodes[e.Caller.Func.Addr] = e.Caller.ToRenderNode(f.pkgPrefix)
+					nodes[e.Callee.Func.Addr] = e.Callee.ToRenderNode(f.pkgPrefix)
 				}
 			}
 		}
@@ -170,16 +172,16 @@ func (f *Flow) GetRenderGraph() *render.Graph {
 							continue
 						}
 						if e2.Callee == nil && e2.Caller != nil {
-							nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode()
+							nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode(f.pkgPrefix)
 							continue
 						}
 						if e2.Callee != nil && e2.Caller == nil {
-							nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode()
+							nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode(f.pkgPrefix)
 							continue
 						}
-						edges[e2.String()] = e2.ToRenderEdge()
-						nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode()
-						nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode()
+						edges[e2.String()] = e2.ToRenderEdge(f.pkgPrefix)
+						nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode(f.pkgPrefix)
+						nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode(f.pkgPrefix)
 					}
 				}
 			}
@@ -203,21 +205,21 @@ func (f *Flow) GetRenderGraph() *render.Graph {
 		}
 		if len(layerInSet) > 0 {
 			for n, _ := range layerInSet {
-				nodes[n.Func.Addr] = n.ToRenderNode()
+				nodes[n.Func.Addr] = n.ToRenderNode(f.pkgPrefix)
 				nodes[n.Func.Addr].Set = setIndex
 			}
 			setIndex++
 		}
 		if len(layerNodeSet) > 0 {
 			for n, _ := range layerNodeSet {
-				nodes[n.Func.Addr] = n.ToRenderNode()
+				nodes[n.Func.Addr] = n.ToRenderNode(f.pkgPrefix)
 				nodes[n.Func.Addr].Set = setIndex
 			}
 			setIndex++
 		}
 		if len(layerOutSet) > 0 {
 			for n, _ := range layerOutSet {
-				nodes[n.Func.Addr] = n.ToRenderNode()
+				nodes[n.Func.Addr] = n.ToRenderNode(f.pkgPrefix)
 				nodes[n.Func.Addr].Set = setIndex
 			}
 			setIndex++
@@ -294,7 +296,7 @@ func (f *Flow) GetDot(isSimple bool) string {
 			continue
 		}
 		mainGraph.AddNode(graphName, strconv.Itoa(n.ID), map[string]string{
-			"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name)) + "\"",
+			"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
 		})
 	}
 	for _, e := range edges {
@@ -304,7 +306,7 @@ func (f *Flow) GetDot(isSimple bool) string {
 		callerID := strconv.Itoa(e.Caller.ID)
 		calleeID := strconv.Itoa(e.Callee.ID)
 		mainGraph.AddEdge(callerID, calleeID, true, map[string]string{
-			"label": "\"" + util.Escape(util.GetSiteSimpleName(e.Site.Name)) + "\"",
+			"label": "\"" + util.Escape(util.GetSiteSimpleName(e.Site.Name, f.pkgPrefix)) + "\"",
 			//"constraint": "false",
 		})
 	}
@@ -333,7 +335,7 @@ func (f *Flow) GetDot(isSimple bool) string {
 			for n, _ := range layerInSet {
 				nodeID := strconv.Itoa(n.ID)
 				mainGraph.AddNode(subGraphName, nodeID, map[string]string{
-					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name)) + "\"",
+					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
 					"color": "green",
 				})
 			}
@@ -344,7 +346,7 @@ func (f *Flow) GetDot(isSimple bool) string {
 			for n, _ := range layerNodeSet {
 				nodeID := strconv.Itoa(n.ID)
 				mainGraph.AddNode(subGraphName, nodeID, map[string]string{
-					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name)) + "\"",
+					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
 					"color": "red",
 				})
 			}
@@ -355,7 +357,7 @@ func (f *Flow) GetDot(isSimple bool) string {
 			for n, _ := range layerOutSet {
 				nodeID := strconv.Itoa(n.ID)
 				mainGraph.AddNode(subGraphName, nodeID, map[string]string{
-					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name)) + "\"",
+					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
 					"color": "yellow",
 				})
 			}
