@@ -1,4 +1,4 @@
-module go-callflow-vis
+module github.com/laindream/go-callflow-vis
 
 go 1.19
 
