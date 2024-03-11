@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="chart"></div>
+<script>
+    fetch('/graph')
+        .then(response => response.json())
+        .then(data => {
+            const graph = data;
+
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+            const links = graph.links;
+            const nodes = graph.nodes;
+
+            const groupedNodes = d3.group(nodes, d => d.group);
+
+            const sortedGroups = Array.from(groupedNodes.keys()).sort((a, b) => a - b);
+
+            const groupSizes = new Map(sortedGroups.map(group => [group, groupedNodes.get(group).length]));
+
+            const groupLayout = new Map();
+            let currentY = 0;
+            sortedGroups.forEach(group => {
+                groupLayout.set(group, currentY);
+                currentY += groupSizes.get(group) * 20;
+            });
+
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id))
+                .force("charge", d3.forceManyBody())
+                .force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2))
+                .on("tick", ticked);
+
+            let svgWidth = window.innerWidth;
+            let svgHeight = window.innerHeight;
+
+            const svg = d3.select("#chart")
+                .append("svg")
+                .attr("preserveAspectRatio", "xMidYMid meet")
+                .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+
+            const link = svg.append("g")
+                .attr("stroke", "#999")
+                .attr("stroke-opacity", 0.6)
+                .selectAll()
+                .data(links)
+                .join("path")
+                .attr("fill", "none")
+                .attr("stroke-width", d => Math.sqrt(d.value))
+                .attr("d", arc);
+
+            const node = svg.append("g")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 1.5)
+                .selectAll()
+                .data(nodes)
+                .join("circle")
+                .attr("r", 5)
+                .attr("fill", d => color(d.group))
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+
+            node.append("title")
+                .text(d => d.id);
+
+            node.call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+            function ticked() {
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                link.attr("d", arc);
+
+                updateViewBox();
+            }
+
+            function arc(d) {
+                if (d.source.group !== d.target.group || d.source.group === -1 || d.target.group === -1) {
+                    return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
+                } else {
+                    const y1 = groupLayout.get(d.source.group);
+                    const y2 = groupLayout.get(d.target.group);
+                    const x = (d.source.x + d.target.x) / 2;
+                    return `M${d.source.x},${y1}Q${x},${(y1 + y2) / 2},${d.target.x},${y2}`;
+                }
+            }
+
+            function updateViewBox() {
+                const minX = d3.min(nodes, d => d.x);
+                const minY = d3.min(nodes, d => d.y);
+                const maxX = d3.max(nodes, d => d.x);
+                const maxY = d3.max(nodes, d => d.y);
+
+                const padding = 50;
+                svgWidth = Math.max(maxX - minX + padding * 2, window.innerWidth);
+                svgHeight = Math.max(maxY - minY + padding * 2, window.innerHeight);
+
+                svg.attr("viewBox", `${minX - padding} ${minY - padding} ${svgWidth} ${svgHeight}`);
+            }
+
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+
+            window.addEventListener('resize', () => {
+                svgWidth = window.innerWidth;
+                svgHeight = window.innerHeight;
+                svg.attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+</script>
+</body>
+</html>

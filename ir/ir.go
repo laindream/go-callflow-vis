@@ -2,6 +2,8 @@ package ir
 
 import (
 	"fmt"
+	"github.com/laindream/go-callflow-vis/render"
+	"github.com/laindream/go-callflow-vis/util"
 	"golang.org/x/tools/go/callgraph"
 	"unsafe"
 )
@@ -319,6 +321,15 @@ type Node struct {
 	tags                map[string]bool
 }
 
+func (n *Node) ToRenderNode() *render.Node {
+	return &render.Node{
+		ID:     n.ID,
+		Set:    -1,
+		Name:   util.GetFuncSimpleName(n.Func.Name),
+		Detail: n.Func.Name,
+	}
+}
+
 func (n *Node) ResetTags() {
 	n.tags = nil
 }
@@ -438,6 +449,15 @@ type Edge struct {
 	Caller *Node
 	Site   *Site
 	Callee *Node
+}
+
+func (e *Edge) ToRenderEdge() *render.Edge {
+	return &render.Edge{
+		From:   e.Caller.ID,
+		To:     e.Callee.ID,
+		Name:   util.GetSiteSimpleName(e.Site.Name),
+		Detail: e.Site.Name,
+	}
 }
 
 func (e *Edge) ReadableString() string {

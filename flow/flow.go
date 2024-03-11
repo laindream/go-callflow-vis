@@ -7,6 +7,7 @@ import (
 	"github.com/laindream/go-callflow-vis/config"
 	"github.com/laindream/go-callflow-vis/ir"
 	"github.com/laindream/go-callflow-vis/mode"
+	"github.com/laindream/go-callflow-vis/render"
 	"github.com/laindream/go-callflow-vis/util"
 	"strconv"
 )
@@ -124,31 +125,16 @@ func (f *Flow) SavePaths(path string, separator string) error {
 	return nil
 }
 
-func (f *Flow) SaveGraph(filename string, isSimple bool) error {
-	mainGraph := gographviz.NewGraph()
-	graphName := "Flow"
-	mainGraph.SetName(graphName)
-	mainGraph.SetDir(true)
-	mainGraph.AddAttr(graphName, "rankdir", "LR")
-	nodes := make(map[*ir.Node]bool)
-	edges := make(map[string]*ir.Edge)
+func (f *Flow) GetRenderGraph() *render.Graph {
+	nodes := make(map[string]*render.Node)
+	edges := make(map[string]*render.Edge)
 	for _, l := range f.Layers {
 		for k, _ := range l.ExamplePath {
 			for k2, _ := range l.ExamplePath[k] {
-				if isSimple {
-					simpleEdge := getSimpleEdgeForPath(l.ExamplePath[k][k2])
-					if simpleEdge == nil {
-						continue
-					}
-					edges[simpleEdge.ReadableString()] = simpleEdge
-					nodes[simpleEdge.Caller] = true
-					nodes[simpleEdge.Callee] = true
-					continue
-				}
 				for _, e := range l.ExamplePath[k][k2] {
-					edges[e.ReadableString()] = e
-					nodes[e.Caller] = true
-					nodes[e.Callee] = true
+					edges[e.String()] = e.ToRenderEdge()
+					nodes[e.Caller.Func.Addr] = e.Caller.ToRenderNode()
+					nodes[e.Callee.Func.Addr] = e.Callee.ToRenderNode()
 				}
 			}
 		}
@@ -160,27 +146,130 @@ func (f *Flow) SaveGraph(filename string, isSimple bool) error {
 							continue
 						}
 						if e2.Callee == nil && e2.Caller != nil {
-							nodes[e2.Caller] = true
+							nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode()
 							continue
 						}
 						if e2.Callee != nil && e2.Caller == nil {
-							nodes[e2.Callee] = true
+							nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode()
 							continue
 						}
-						edges[e2.ReadableString()] = e2
-						nodes[e2.Caller] = true
-						nodes[e2.Callee] = true
+						edges[e2.String()] = e2.ToRenderEdge()
+						nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode()
+						nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode()
 					}
 				}
 			}
 		}
 	}
-	for n, _ := range nodes {
-		nodeID := strconv.Itoa(n.ID)
+	setIndex := 0
+	for _, l := range f.Layers {
+		layerInSet := make(map[*ir.Node]bool)
+		layerNodeSet := make(map[*ir.Node]bool)
+		layerOutSet := make(map[*ir.Node]bool)
+		for _, entity := range l.Entities {
+			for n, _ := range entity.InNodeSet {
+				layerInSet[n] = true
+			}
+			for n, _ := range entity.NodeSet {
+				layerNodeSet[n] = true
+			}
+			for n, _ := range entity.OutNodeSet {
+				layerOutSet[n] = true
+			}
+		}
+		if len(layerInSet) > 0 {
+			for n, _ := range layerInSet {
+				nodes[n.Func.Addr] = n.ToRenderNode()
+				nodes[n.Func.Addr].Set = setIndex
+			}
+			setIndex++
+		}
+		if len(layerNodeSet) > 0 {
+			for n, _ := range layerNodeSet {
+				nodes[n.Func.Addr] = n.ToRenderNode()
+				nodes[n.Func.Addr].Set = setIndex
+			}
+			setIndex++
+		}
+		if len(layerOutSet) > 0 {
+			for n, _ := range layerOutSet {
+				nodes[n.Func.Addr] = n.ToRenderNode()
+				nodes[n.Func.Addr].Set = setIndex
+			}
+			setIndex++
+		}
+	}
+	nodeSet := make([]*render.Node, 0)
+	for _, n := range nodes {
+		nodeSet = append(nodeSet, n)
+	}
+	edgeSet := make([]*render.Edge, 0)
+	for _, e := range edges {
+		edgeSet = append(edgeSet, e)
+	}
+	return &render.Graph{
+		NodeSet: nodeSet,
+		EdgeSet: edgeSet,
+	}
+}
+
+func (f *Flow) GetDot(isSimple bool) string {
+	mainGraph := gographviz.NewGraph()
+	graphName := "Flow"
+	mainGraph.SetName(graphName)
+	mainGraph.SetDir(true)
+	mainGraph.AddAttr(graphName, "rankdir", "LR")
+	mainGraph.AddAttr(graphName, "newrank", "true")
+	nodes := make(map[string]*ir.Node)
+	edges := make(map[string]*ir.Edge)
+	for _, l := range f.Layers {
+		for k, _ := range l.ExamplePath {
+			for k2, _ := range l.ExamplePath[k] {
+				if isSimple {
+					simpleEdge := getSimpleEdgeForPath(l.ExamplePath[k][k2])
+					if simpleEdge == nil {
+						continue
+					}
+					edges[simpleEdge.String()] = simpleEdge
+					nodes[simpleEdge.Caller.Func.Addr] = simpleEdge.Caller
+					nodes[simpleEdge.Callee.Func.Addr] = simpleEdge.Callee
+					continue
+				}
+				for _, e := range l.ExamplePath[k][k2] {
+					edges[e.String()] = e
+					nodes[e.Caller.Func.Addr] = e.Caller
+					nodes[e.Callee.Func.Addr] = e.Callee
+				}
+			}
+		}
+		for k, _ := range l.GetInToOutEdgeSet(f.callgraph) {
+			for k2, _ := range l.GetInToOutEdgeSet(f.callgraph)[k] {
+				for _, e := range l.GetInToOutEdgeSet(f.callgraph)[k][k2] {
+					for _, e2 := range e {
+						if e2.Callee == nil && e2.Caller == nil {
+							continue
+						}
+						if e2.Callee == nil && e2.Caller != nil {
+							nodes[e2.Caller.Func.Addr] = e2.Caller
+							continue
+						}
+						if e2.Callee != nil && e2.Caller == nil {
+							nodes[e2.Callee.Func.Addr] = e2.Callee
+							continue
+						}
+						edges[e2.String()] = e2
+						nodes[e2.Caller.Func.Addr] = e2.Caller
+						nodes[e2.Callee.Func.Addr] = e2.Callee
+					}
+				}
+			}
+		}
+	}
+	for _, n := range nodes {
 		if n.Func == nil {
 			continue
 		}
-		mainGraph.AddNode(graphName, nodeID, map[string]string{
+		mainGraph.AddNode(graphName, strconv.Itoa(n.ID), map[string]string{
 			"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name)) + "\"",
 		})
 	}
@@ -191,7 +280,8 @@ func (f *Flow) SaveGraph(filename string, isSimple bool) error {
 		callerID := strconv.Itoa(e.Caller.ID)
 		calleeID := strconv.Itoa(e.Callee.ID)
 		mainGraph.AddEdge(callerID, calleeID, true, map[string]string{
-			"label": "\"" + util.Escape(e.Site.Name) + "\"",
+			"label": "\"" + util.Escape(util.GetSiteSimpleName(e.Site.Name)) + "\"",
+			//"constraint": "false",
 		})
 	}
 	for i, l := range f.Layers {
@@ -209,9 +299,12 @@ func (f *Flow) SaveGraph(filename string, isSimple bool) error {
 				layerOutSet[n] = true
 			}
 		}
-		attr := map[string]string{"rank": "same"}
+		attr := map[string]string{
+			"rank":  "same",
+			"style": "invis",
+		}
 		if len(layerInSet) > 0 {
-			subGraphName := fmt.Sprintf("\"%d-in\"", i)
+			subGraphName := fmt.Sprintf("\"cluster_%d-in\"", i)
 			mainGraph.AddSubGraph(graphName, subGraphName, attr)
 			for n, _ := range layerInSet {
 				nodeID := strconv.Itoa(n.ID)
@@ -222,7 +315,7 @@ func (f *Flow) SaveGraph(filename string, isSimple bool) error {
 			}
 		}
 		if len(layerNodeSet) > 0 {
-			subGraphName := fmt.Sprintf("%d", i)
+			subGraphName := fmt.Sprintf("cluster_%d", i)
 			mainGraph.AddSubGraph(graphName, subGraphName, attr)
 			for n, _ := range layerNodeSet {
 				nodeID := strconv.Itoa(n.ID)
@@ -233,7 +326,7 @@ func (f *Flow) SaveGraph(filename string, isSimple bool) error {
 			}
 		}
 		if len(layerOutSet) > 0 {
-			subGraphName := fmt.Sprintf("\"%d-out\"", i)
+			subGraphName := fmt.Sprintf("\"cluster_%d-out\"", i)
 			mainGraph.AddSubGraph(graphName, subGraphName, attr)
 			for n, _ := range layerOutSet {
 				nodeID := strconv.Itoa(n.ID)
@@ -244,7 +337,11 @@ func (f *Flow) SaveGraph(filename string, isSimple bool) error {
 			}
 		}
 	}
-	dotString := mainGraph.String()
+	return mainGraph.String()
+}
+
+func (f *Flow) SaveDot(filename string, isSimple bool) error {
+	dotString := f.GetDot(isSimple)
 	return util.WriteToFile(dotString, filename)
 }
 

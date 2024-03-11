@@ -68,7 +68,7 @@ func (a *Analysis) Run() error {
 	var filterCacheObj *ir.Callgraph
 	err := a.cache.Get(filterCacheKey, &filterCacheObj)
 	if err == nil && filterCacheObj != nil {
-		fmt.Printf("Analysis.TrimCallGraph: cache hit: %s\n", filterCacheKey)
+		fmt.Printf("Analysis.FilterCallGraph: cache hit: %s\n", filterCacheKey)
 		a.callgraph = filterCacheObj
 	}
 	if a.callgraph == nil {

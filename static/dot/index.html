@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="//d3js.org/d3.v5.min.js"></script>
+<script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js"></script>
+<script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
+<div id="graph" style="text-align: center;"></div>
+<script>
+    let lastClickedNodeKey = null;
+
+    function highlightNodeEdgesByKey(dotString) {
+        const graphviz = d3.select("#graph").graphviz();
+        graphviz
+            .renderDot(dotString)
+            .on('end', function () {
+                d3.selectAll('.node').on('click', function () {
+                    const nodeKey = d3.select(this).data()[0].key;
+                    if (lastClickedNodeKey === nodeKey) {
+                        d3.selectAll('.node,.edge').style('opacity', 1);
+                        d3.selectAll('.edge text').style('fill', '');
+                        d3.selectAll('.edge path').style('stroke', '').style('stroke-width', '');
+                        lastClickedNodeKey = null;
+                    } else {
+                        lastClickedNodeKey = nodeKey;
+                        d3.selectAll('.node,.edge').style('opacity', 0.35);
+                        d3.selectAll(`.edge`).each(function () {
+                            const edgeKey = d3.select(this).data()[0].key;
+                            if (edgeKey.startsWith(nodeKey + '->') || edgeKey.endsWith('->' + nodeKey)) {
+                                d3.select(this).style('opacity', 1)
+                                d3.select(this).select('path').style('stroke', 'red').style('stroke-width', '5px');
+                                d3.select(this).select('text').style('fill', 'red');
+                                const [sourceKey, targetKey] = edgeKey.split('->');
+                                d3.selectAll('.node').filter(function () {
+                                    const nodeData = d3.select(this).data()[0];
+                                    return nodeData.key === sourceKey || nodeData.key === targetKey;
+                                }).style('opacity', 1);
+                            }
+                        });
+                    }
+                });
+            });
+    }
+
+    fetch('/dot')
+        .then(response => response.text())
+        .then(graphStr => {
+            highlightNodeEdgesByKey(graphStr);
+        })
+        .catch(error => console.error('Error fetching the graph:', error));
+</script>
+</body>
