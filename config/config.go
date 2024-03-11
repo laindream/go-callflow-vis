@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"go-callflow-vis/mode"
+	"github.com/laindream/go-callflow-vis/mode"
 )
 
 type Config struct {

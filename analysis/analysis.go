@@ -3,11 +3,11 @@ package analysis
 import (
 	"errors"
 	"fmt"
-	"go-callflow-vis/cache"
-	"go-callflow-vis/config"
-	"go-callflow-vis/flow"
-	"go-callflow-vis/ir"
-	"go-callflow-vis/util"
+	"github.com/laindream/go-callflow-vis/cache"
+	"github.com/laindream/go-callflow-vis/config"
+	"github.com/laindream/go-callflow-vis/flow"
+	"github.com/laindream/go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/util"
 	"golang.org/x/tools/go/callgraph"
 )
 

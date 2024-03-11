@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go-callflow-vis/analysis"
-	"go-callflow-vis/config"
+	"github.com/laindream/go-callflow-vis/analysis"
+	"github.com/laindream/go-callflow-vis/config"
 	"os"
 	"strings"
 )

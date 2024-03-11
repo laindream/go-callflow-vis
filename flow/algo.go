@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/eapache/queue/v2"
-	"go-callflow-vis/cache"
-	"go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/cache"
+	"github.com/laindream/go-callflow-vis/ir"
 )
 
 func (f *Flow) resetCallgraphIR() error {

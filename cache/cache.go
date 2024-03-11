@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/apache/incubator-fury/go/fury"
-	"go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/ir"
 	"io"
 	"log"
 	"os"

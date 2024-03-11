@@ -3,11 +3,11 @@ package flow
 import (
 	"fmt"
 	"github.com/awalterschulze/gographviz"
-	"go-callflow-vis/cache"
-	"go-callflow-vis/config"
-	"go-callflow-vis/ir"
-	"go-callflow-vis/mode"
-	"go-callflow-vis/util"
+	"github.com/laindream/go-callflow-vis/cache"
+	"github.com/laindream/go-callflow-vis/config"
+	"github.com/laindream/go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/mode"
+	"github.com/laindream/go-callflow-vis/util"
 	"strconv"
 )
 
