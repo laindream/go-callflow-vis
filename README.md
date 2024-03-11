@@ -26,4 +26,4 @@ DAO (数据访问层抽象)
 
 ##### 使用go install进行安装
 
-go install github.com/laindream/go-callflow-vis
+go install github.com/laindream/go-callflow-vis@latest
