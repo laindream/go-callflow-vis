@@ -56,12 +56,13 @@ func main() {
 	)
 	err = a.Run()
 	if err != nil {
-		return
+		fmt.Printf("failed to run analysis: %v\n", err)
+		os.Exit(1)
 	}
 	f := a.GetFlow()
 	if f == nil {
 		fmt.Printf("get flow failed\n")
-		return
+		os.Exit(1)
 	}
 	out := *outDir
 	if strings.HasSuffix(out, "/") {
