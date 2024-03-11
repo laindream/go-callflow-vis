@@ -19,11 +19,11 @@ DAO (数据访问层抽象)
 #### 特性
 
 多层二分图输出：显示相邻层函数之间的可达性，包括两个可达函数之间的可能调用路径。
+
 灵活性：允许用户自定义每一层的关键函数或函数类别，以便更精确地分析项目结构。
+
 优化辅助：通过可视化调用路径，帮助开发者识别和优化代码结构。
 
 #### 安装
 
-##### 使用go install进行安装
-
-go install github.com/laindream/go-callflow-vis
+go install github.com/laindream/go-callflow-vis@latest
