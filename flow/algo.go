@@ -207,7 +207,11 @@ func (f *Flow) checkCallEdgeChain(path []*ir.Edge) (isCheckPass bool, issueFunc 
 	for i, _ := range fChain {
 		if fChain[i].Parent != nil {
 			if _, ok := fChainMap[fChain[i].Parent.Addr]; !ok {
-				return false, fChain[i-1]
+				if i == 0 {
+					fChainMap[fChain[i].Parent.Addr] = true
+				} else {
+					return false, fChain[i-1]
+				}
 			}
 		}
 		fChainMap[fChain[i].Addr] = true
