@@ -108,7 +108,7 @@ func (a *Analysis) InitCallgraph() error {
 		return err
 	}
 	var cg *callgraph.Graph
-	log.GetLogger().Debugf("Analysis.InitCallgraph: Callgraph Compute Start...")
+	log.GetLogger().Debugf("Analysis.InitCallgraph: Callgraph Compute Start(algo:%s)...", a.Algo)
 	cg, err = a.ComputeCallgraph(programAnalysis)
 	if err != nil {
 		log.GetLogger().Errorf("Analysis.InitCallgraph: callgraph compute error: %v", err)
