@@ -6,6 +6,7 @@ import (
 	"github.com/eapache/queue/v2"
 	"github.com/laindream/go-callflow-vis/cache"
 	"github.com/laindream/go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/log"
 )
 
 func (f *Flow) resetCallgraphIR() error {
@@ -26,6 +27,7 @@ func (f *Flow) GetMinNodeSet() (map[*ir.Node]bool, error) {
 		}
 		startNodes := f.Layers[i].GetOutAllNodeSet(f.callgraph)
 		endNodes := f.Layers[i+1].GetInAllNodeSet(f.callgraph)
+		log.GetLogger().Debugf("Layer[%d] orinigal startNodes: %d, endNodes: %d", i, len(startNodes), len(endNodes))
 		nodeSet, _ := f.findReachableNodesIR(startNodes, endNodes, nil)
 		for k, _ := range nodeSet {
 			minNodeSet[k] = true
