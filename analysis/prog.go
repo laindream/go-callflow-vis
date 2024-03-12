@@ -53,10 +53,13 @@ func RunAnalysis(withTests bool, buildFlags []string, pkgPatterns []string, quer
 	if len(pkgPatterns) == 0 {
 		return nil, fmt.Errorf("no package patterns provided")
 	}
+	if len(buildFlags) == 0 {
+		buildFlags = getBuildFlags()
+	}
 	cfg := &packages.Config{
 		Mode:       packages.LoadAllSyntax,
 		Tests:      withTests,
-		BuildFlags: getBuildFlags(),
+		BuildFlags: buildFlags,
 		Dir:        queryDir,
 	}
 	//if gopath != "" {

@@ -16,22 +16,40 @@ import (
 	"time"
 )
 
-const Usage = `usage...
+const Usage = `Usage: go-callflow-vis [OPTIONS] PACKAGE...
+Examples: (When you are in the root directory of the project)
+    go-callflow-vis -config ./config.toml .
+Options:
+    -config <config_file> (Required): Path to the layer configuration file (e.g., config.toml).
+    -cache-dir <cache_dir> (Optional, Default: ./go_callflow_vis_cache): Directory to store cache files.
+    -out-dir <out_dir> (Optional, Default: .): Output directory for the generated files.
+    -algo <algo> (Optional, Default: cha): The algorithm used to construct the call graph. Possible values include: static, cha, rta, pta, vta.
+    -query-dir <query_dir> (Optional, Default: ""): Directory to query from for Go packages. Uses the current directory if empty.
+    -tests (Optional): Consider test files as entry points for the call graph.
+    -build <build_flags> (Optional, Default: ""): Build flags to pass to the Go build tool. Flags should be separated with spaces.
+    -skip-browser (Optional): Skip opening the browser automatically.
+    -web (Optional): Serve the web visualization interface.
+    -web-host <web_host> (Optional, Default: localhost): Host to serve the web interface on.
+    -web-port <web_port> (Optional, Default: 45789): Port to serve the web interface on.
+    -debug (Optional): Print debug information.
+Arguments:
+    PACKAGE...: One or more Go packages to analyze.
 `
 
 var (
-	debugFlag     = flag.Bool("debug", false, "Print debug information")
-	webFlag       = flag.Bool("web", false, "Output an index.html with graph data embedded instead of raw JSON")
-	webHost       = flag.String("web-host", "localhost", "Host to serve the web interface on")
-	webPort       = flag.String("web-port", "45789", "Port to serve the web interface on")
-	testFlag      = flag.Bool("tests", false, "Consider tests files as entry points for call-graph")
-	queryDir      = flag.String("query-dir", "", "Directory to query from for go packages. Current dir if empty")
-	cacheDir      = flag.String("cache-dir", "", "Directory to store cache files")
 	configPath    = flag.String("config", "", "Path to the layer configuration file (e.g., config.toml)")
+	cacheDir      = flag.String("cache-dir", "", "Directory to store cache files")
+	outDir        = flag.String("out-dir", ".", "Output directory for the generated files")
 	callgraphAlgo = flag.String("algo", analysis.CallGraphTypeCha, fmt.Sprintf("The algorithm used to construct the call graph. Possible values inlcude: %q, %q, %q, %q, %q",
 		analysis.CallGraphTypeStatic, analysis.CallGraphTypeCha, analysis.CallGraphTypeRta, analysis.CallGraphTypePta, analysis.CallGraphTypeVta))
-	buildFlag = flag.String("build", "", "Build flags to pass to Go build tool. Separated with spaces")
-	outDir    = flag.String("out-dir", ".", "Output directory for the generated files")
+	queryDir    = flag.String("query-dir", "", "Directory to query from for go packages. Current dir if empty")
+	testFlag    = flag.Bool("tests", false, "Consider tests files as entry points for call-graph")
+	buildFlag   = flag.String("build", "", "Build flags to pass to Go build tool. Separated with spaces")
+	skipBrowser = flag.Bool("skip-browser", false, "Skip opening browser")
+	webFlag     = flag.Bool("web", false, "Serve web visualisation")
+	webHost     = flag.String("web-host", "localhost", "Host to serve the web on")
+	webPort     = flag.String("web-port", "45789", "Port to serve the web on")
+	debugFlag   = flag.Bool("debug", false, "Print debug information")
 )
 
 //go:embed static
@@ -112,7 +130,9 @@ func main() {
 		r.StaticFS("/render/graph", http.FS(renderGraph))
 		renderDot, _ := fs.Sub(FS, "static/dot")
 		r.StaticFS("/render/dot", http.FS(renderDot))
-		go openBrowser(fmt.Sprintf("http://%s:%s/render/dot/", *webHost, *webPort))
+		if !*skipBrowser {
+			go openBrowser(fmt.Sprintf("http://%s:%s/render/dot/", *webHost, *webPort))
+		}
 		log.GetLogger().Infof("serving web on %s:%s", *webHost, *webPort)
 		r.Run(fmt.Sprintf("%s:%s", *webHost, *webPort))
 	}
