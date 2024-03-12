@@ -112,9 +112,9 @@ func (f *Flow) Generate() error {
 		f.reset()
 		return err
 	}
-	f.isCompleteGenerate = true
-	f.PrintFlow()
 	log.GetLogger().Debugf("Flow.Generate: Done")
+	f.PrintFlow()
+	f.isCompleteGenerate = true
 	return nil
 }
 
