@@ -60,6 +60,7 @@ type Flow struct {
 	furyBuffer         []byte
 	callgraph          *ir.Callgraph
 	allIssueFuncs      map[string]bool
+	passNoIssueCheck   bool
 	Layers             []*Layer
 	isCompleteGenerate bool
 }
@@ -75,6 +76,7 @@ func (f *Flow) initFuryBuffer() error {
 
 func (f *Flow) reset() {
 	f.allIssueFuncs = nil
+	f.passNoIssueCheck = false
 	f.resetLayer()
 }
 
@@ -108,7 +110,7 @@ func (f *Flow) Generate() error {
 		return nil
 	}
 	f.PrintOriginalFlow()
-	err := f.findAllBipartite()
+	err := f.findAllBipartite(false)
 	if err != nil {
 		f.reset()
 		return err

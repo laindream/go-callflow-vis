@@ -36,7 +36,7 @@ func (f *Flow) GetMinNodeSet() (map[*ir.Node]bool, error) {
 	return minNodeSet, nil
 }
 
-func (f *Flow) findAllBipartite() error {
+func (f *Flow) findAllBipartite(isCallgraphJustReset bool) error {
 	if f == nil {
 		return errors.New("flow is nil")
 	}
@@ -80,7 +80,6 @@ func (f *Flow) findAllBipartite() error {
 		}
 	}
 	if len(issueFuncs) > 0 {
-		hasChanged := false
 		addCount := 0
 		for k, _ := range issueFuncs {
 			if f.allIssueFuncs == nil {
@@ -88,20 +87,23 @@ func (f *Flow) findAllBipartite() error {
 			}
 			if _, ok := f.allIssueFuncs[k]; !ok {
 				f.allIssueFuncs[k] = true
-				hasChanged = true
 				addCount++
 			}
 		}
 		log.GetLogger().Debugf("Find Incremental Issue Funcs:%d, Total Issue Funcs:%d, Regenerate Flow",
 			addCount, len(f.allIssueFuncs))
-		if hasChanged {
-			if err := f.resetCallgraphIR(); err != nil {
-				return err
-			}
+		f.skipNodesIR(f.allIssueFuncs)
+		f.resetLayer()
+		return f.findAllBipartite(false)
+	}
+	if !isCallgraphJustReset && len(issueFuncs) == 0 {
+		log.GetLogger().Debugf("No Incremental Issue Funcs, Try No Issue Check")
+		if err := f.resetCallgraphIR(); err != nil {
+			return err
 		}
 		f.skipNodesIR(f.allIssueFuncs)
 		f.resetLayer()
-		return f.findAllBipartite()
+		return f.findAllBipartite(true)
 	}
 	for i := len(f.Layers) - 2; i >= 0; i-- {
 		for j, _ := range f.Layers[i].Entities {
