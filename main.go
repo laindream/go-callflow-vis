@@ -34,10 +34,11 @@ Options:
     -debug (Optional): Print debug information.
 Arguments:
     PACKAGE...: One or more Go packages to analyze.
+
 `
 
 var (
-	configPath    = flag.String("config", "", "Path to the layer configuration file (e.g., config.toml)")
+	configPath    = flag.String("config", "", "(Required)Path to the layer configuration file (e.g., config.toml)")
 	cacheDir      = flag.String("cache-dir", "", "Directory to store cache files")
 	outDir        = flag.String("out-dir", ".", "Output directory for the generated files")
 	callgraphAlgo = flag.String("algo", analysis.CallGraphTypeCha, fmt.Sprintf("The algorithm used to construct the call graph. Possible values inlcude: %q, %q, %q, %q, %q",
