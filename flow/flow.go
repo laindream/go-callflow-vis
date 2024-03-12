@@ -47,6 +47,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.GetLogger().Debugf("NewFlow: Generate Min Graph Nodes:%d", len(f.callgraph.Nodes))
 	err = f.initFuryBuffer()
 	if err != nil {
 		return nil, err
