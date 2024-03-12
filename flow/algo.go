@@ -6,6 +6,7 @@ import (
 	"github.com/eapache/queue/v2"
 	"github.com/laindream/go-callflow-vis/cache"
 	"github.com/laindream/go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/log"
 )
 
 func (f *Flow) resetCallgraphIR() error {
@@ -80,6 +81,7 @@ func (f *Flow) findAllBipartite() error {
 	}
 	if len(issueFuncs) > 0 {
 		hasChanged := false
+		addCount := 0
 		for k, _ := range issueFuncs {
 			if f.allIssueFuncs == nil {
 				f.allIssueFuncs = make(map[string]bool)
@@ -87,8 +89,11 @@ func (f *Flow) findAllBipartite() error {
 			if _, ok := f.allIssueFuncs[k]; !ok {
 				f.allIssueFuncs[k] = true
 				hasChanged = true
+				addCount++
 			}
 		}
+		log.GetLogger().Debugf("Find Incremental Issue Funcs:%d, Total Issue Funcs:%d, Regenerate Flow",
+			addCount, len(f.allIssueFuncs))
 		if hasChanged {
 			if err := f.resetCallgraphIR(); err != nil {
 				return err
