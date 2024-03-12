@@ -106,6 +106,7 @@ func (f *Flow) Generate() error {
 	if f.isCompleteGenerate {
 		return nil
 	}
+	f.PrintOriginalFlow()
 	err := f.findAllBipartite()
 	if err != nil {
 		f.reset()
@@ -115,6 +116,16 @@ func (f *Flow) Generate() error {
 	f.PrintFlow()
 	log.GetLogger().Debugf("Flow.Generate: Done")
 	return nil
+}
+
+func (f *Flow) PrintOriginalFlow() {
+	for i, _ := range f.Layers {
+		inAllNode := len(f.Layers[i].GetInAllNodeSet(f.callgraph))
+		outAllNode := len(f.Layers[i].GetOutAllNodeSet(f.callgraph))
+		log.GetLogger().Debugf("Orignial Layers[%d] InAllNode:%d, OutAllNode:%d",
+			i, inAllNode, outAllNode)
+	}
+	f.resetLayer()
 }
 
 func (f *Flow) PrintFlow() {
