@@ -169,8 +169,8 @@ func (a *Analysis) FilterCallGraph() error {
 	}
 	log.GetLogger().Debugf("Analysis.FilterCallGraph: Filter Callgraph Start...")
 	a.callgraph = ir.GetFilteredCallgraph(a.callgraph, func(funcName string) bool {
-		if !a.config.Focus.Match(funcName) ||
-			a.config.Ignore.Match(funcName) {
+		if (len(a.config.Focus) != 0 && !a.config.Focus.Match(funcName)) ||
+			(len(a.config.Ignore) != 0 && a.config.Ignore.Match(funcName)) {
 			return false
 		}
 		return true
