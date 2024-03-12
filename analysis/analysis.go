@@ -7,6 +7,7 @@ import (
 	"github.com/laindream/go-callflow-vis/config"
 	"github.com/laindream/go-callflow-vis/flow"
 	"github.com/laindream/go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/log"
 	"github.com/laindream/go-callflow-vis/util"
 	"golang.org/x/tools/go/callgraph"
 )
@@ -68,18 +69,24 @@ func (a *Analysis) Run() error {
 	var filterCacheObj *ir.Callgraph
 	err := a.cache.Get(filterCacheKey, &filterCacheObj)
 	if err == nil && filterCacheObj != nil {
-		fmt.Printf("Analysis.FilterCallGraph: cache hit: %s\n", filterCacheKey)
+		log.GetLogger().Debugf("Analysis.Run: cache hit: %s", filterCacheKey)
 		a.callgraph = filterCacheObj
 	}
 	if a.callgraph == nil {
 		err = a.InitCallgraph()
 		if err != nil {
+			log.GetLogger().Errorf("Analysis.Run: init callgraph error: %v", err)
 			return err
 		}
-		a.FilterCallGraph()
+		err = a.FilterCallGraph()
+		if err != nil {
+			log.GetLogger().Errorf("Analysis.Run: filter callgraph error: %v", err)
+			return err
+		}
 	}
 	err = a.GenerateFlow()
 	if err != nil {
+		log.GetLogger().Errorf("Analysis.Run: generate flow error: %v", err)
 		return err
 	}
 	return nil
@@ -90,24 +97,30 @@ func (a *Analysis) InitCallgraph() error {
 	var cacheObj *ir.Callgraph
 	err := a.cache.Get(cacheKey, &cacheObj)
 	if err == nil && cacheObj != nil {
-		fmt.Printf("Analysis.InitCallgraph: cache hit: %s\n", cacheKey)
+		log.GetLogger().Debugf("Analysis.InitCallgraph: cache hit: %s", cacheKey)
 		a.callgraph = cacheObj
 		return nil
 	}
+	log.GetLogger().Debugf("Analysis.InitCallgraph: Program Analysis Start...")
 	programAnalysis, err := RunAnalysis(a.Tests, a.Build, a.Args, a.Dir)
 	if err != nil {
+		log.GetLogger().Errorf("Analysis.InitCallgraph: program analysis error: %v", err)
 		return err
 	}
 	var cg *callgraph.Graph
+	log.GetLogger().Debugf("Analysis.InitCallgraph: Callgraph Compute Start...")
 	cg, err = a.ComputeCallgraph(programAnalysis)
 	if err != nil {
+		log.GetLogger().Errorf("Analysis.InitCallgraph: callgraph compute error: %v", err)
 		return err
 	}
+	log.GetLogger().Debugf("Analysis.InitCallgraph: Callgraph Convert Start...")
 	cg.DeleteSyntheticNodes()
 	a.callgraph = ir.ConvertToIR(cg)
+	log.GetLogger().Debugf("Analysis.InitCallgraph: cache set: %s", cacheKey)
 	err = a.cache.Set(cacheKey, a.callgraph)
 	if err != nil {
-		fmt.Printf("Analysis.InitCallgraph cache set error: %v\n", err)
+		log.GetLogger().Errorf("Analysis.InitCallgraph cache set error: %v", err)
 	}
 	return nil
 }
@@ -126,10 +139,12 @@ func (a *Analysis) GenerateFlow() error {
 	}
 	f, err := flow.NewFlow(a.config, a.callgraph)
 	if err != nil {
+		log.GetLogger().Errorf("Analysis.GenerateFlow: flow new error: %v", err)
 		return err
 	}
 	err = f.Generate()
 	if err != nil {
+		log.GetLogger().Errorf("Analysis.GenerateFlow: flow generate error: %v", err)
 		return err
 	}
 	a.flow = f
@@ -140,19 +155,19 @@ func (a *Analysis) GetFlow() *flow.Flow {
 	return a.flow
 }
 
-func (a *Analysis) FilterCallGraph() {
+func (a *Analysis) FilterCallGraph() error {
 	cacheKey := fmt.Sprintf("%s_filter_%s", a.GetCacheKeyPrefix(), util.GetHash(a.config))
 	var cacheObj *ir.Callgraph
 	err := a.cache.Get(cacheKey, &cacheObj)
 	if err == nil && cacheObj != nil {
-		fmt.Printf("Analysis.FilterCallGraph: cache hit: %s\n", cacheKey)
+		log.GetLogger().Debugf("Analysis.FilterCallGraph: cache hit: %s", cacheKey)
 		a.callgraph = cacheObj
-		return
+		return nil
 	}
 	if a.callgraph == nil {
-		fmt.Printf("Analysis.FilterCallGraph: callgraph is nil\n")
-		return
+		return errors.New("callgraph is nil")
 	}
+	log.GetLogger().Debugf("Analysis.FilterCallGraph: Filter Callgraph Start...")
 	a.callgraph = ir.GetFilteredCallgraph(a.callgraph, func(funcName string) bool {
 		if !a.config.Focus.Match(funcName) ||
 			a.config.Ignore.Match(funcName) {
@@ -160,8 +175,10 @@ func (a *Analysis) FilterCallGraph() {
 		}
 		return true
 	})
+	log.GetLogger().Debugf("Analysis.FilterCallGraph: cache set: %s", cacheKey)
 	err = a.cache.Set(cacheKey, a.callgraph)
 	if err != nil {
-		fmt.Printf("Analysis.FilterCallGraph cache set error: %v\n", err)
+		log.GetLogger().Errorf("Analysis.FilterCallGraph cache set error: %v", err)
 	}
+	return nil
 }

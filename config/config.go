@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/laindream/go-callflow-vis/log"
 	"github.com/laindream/go-callflow-vis/mode"
 )
 
@@ -27,12 +28,14 @@ type Entity struct {
 
 func LoadConfig(path string) (*Config, error) {
 	var config Config
+	log.GetLogger().Debugf("loading config from %s", path)
 	if _, err := toml.DecodeFile(path, &config); err != nil {
 		return nil, err
 	}
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
+	log.GetLogger().Debugf("config loaded")
 	return &config, nil
 }
 

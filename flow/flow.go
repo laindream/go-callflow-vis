@@ -6,6 +6,7 @@ import (
 	"github.com/laindream/go-callflow-vis/cache"
 	"github.com/laindream/go-callflow-vis/config"
 	"github.com/laindream/go-callflow-vis/ir"
+	"github.com/laindream/go-callflow-vis/log"
 	"github.com/laindream/go-callflow-vis/mode"
 	"github.com/laindream/go-callflow-vis/render"
 	"github.com/laindream/go-callflow-vis/util"
@@ -41,6 +42,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
 		callgraph: callGraph,
 		Layers:    layers,
 	}
+	log.GetLogger().Debugf("NewFlow: Generate Min Graph...")
 	err := f.UpdateMinGraph()
 	if err != nil {
 		return nil, err
@@ -81,15 +83,6 @@ func (f *Flow) resetLayer() {
 	}
 }
 
-func (f *Flow) printConfig() {
-	for i, _ := range f.Layers {
-		fmt.Printf("Layers[%d].GetInAllNodeSetOnlyRead(a.callgraphIR):%d\n", i, len(f.Layers[i].GetInAllNodeSetOnlyRead(f.callgraph)))
-		fmt.Printf("Layers[%d].GetOutAllNodeSetOnlyRead(a.callgraphIR):%d\n", i, len(f.Layers[i].GetOutAllNodeSetOnlyRead(f.callgraph)))
-		start, end := GetStartAndEndFromExamplePath(f.Layers[i].ExamplePath)
-		fmt.Printf("Layers[%d].GetStartAndEndFromExamplePath():start:%d,end:%d\n\n", i, len(start), len(end))
-	}
-}
-
 func (f *Flow) UpdateMinGraph() error {
 	minSet, err := f.GetMinNodeSet()
 	if err != nil {
@@ -109,6 +102,7 @@ func (f *Flow) UpdateMinGraph() error {
 }
 
 func (f *Flow) Generate() error {
+	log.GetLogger().Debugf("Flow.Generate: Start...")
 	if f.isCompleteGenerate {
 		return nil
 	}
@@ -118,8 +112,20 @@ func (f *Flow) Generate() error {
 		return err
 	}
 	f.isCompleteGenerate = true
-	f.printConfig()
+	f.PrintFlow()
+	log.GetLogger().Debugf("Flow.Generate: Done")
 	return nil
+}
+
+func (f *Flow) PrintFlow() {
+	log.GetLogger().Debugf("Flow issueFuncs:%d", len(f.allIssueFuncs))
+	for i, _ := range f.Layers {
+		inAllNode := len(f.Layers[i].GetInAllNodeSetOnlyRead(f.callgraph))
+		outAllNode := len(f.Layers[i].GetOutAllNodeSetOnlyRead(f.callgraph))
+		start, end := GetStartAndEndFromExamplePath(f.Layers[i].ExamplePath)
+		log.GetLogger().Debugf("Layers[%d] InAllNode:%d, OutAllNode:%d, start:%d, end:%d",
+			i, inAllNode, outAllNode, len(start), len(end))
+	}
 }
 
 func (f *Flow) SavePaths(path string, separator string) error {
