@@ -24,6 +24,7 @@ Options:
     -cache-dir <cache_dir> (Optional, Default: ./go_callflow_vis_cache): Directory to store cache files.
     -out-dir <out_dir> (Optional, Default: .): Output directory for the generated files.
     -algo <algo> (Optional, Default: cha): The algorithm used to construct the call graph. Possible values include: static, cha, rta, pta, vta.
+    -fast (Optional): Use fast mode to generate flow, which may lose some connectivity.
     -query-dir <query_dir> (Optional, Default: ""): Directory to query from for Go packages. Uses the current directory if empty.
     -tests (Optional): Consider test files as entry points for the call graph.
     -build <build_flags> (Optional, Default: ""): Build flags to pass to the Go build tool. Flags should be separated with spaces.
@@ -43,6 +44,7 @@ var (
 	outDir        = flag.String("out-dir", ".", "Output directory for the generated files")
 	callgraphAlgo = flag.String("algo", analysis.CallGraphTypeCha, fmt.Sprintf("The algorithm used to construct the call graph. Possible values inlcude: %q, %q, %q, %q, %q",
 		analysis.CallGraphTypeStatic, analysis.CallGraphTypeCha, analysis.CallGraphTypeRta, analysis.CallGraphTypePta, analysis.CallGraphTypeVta))
+	fastFlag    = flag.Bool("fast", false, "Use fast mode to generate flow, which may lose some connectivity")
 	queryDir    = flag.String("query-dir", "", "Directory to query from for go packages. Current dir if empty")
 	testFlag    = flag.Bool("tests", false, "Consider tests files as entry points for call-graph")
 	buildFlag   = flag.String("build", "", "Build flags to pass to Go build tool. Separated with spaces")
@@ -86,6 +88,7 @@ func main() {
 		*queryDir,
 		args,
 		buildFlags,
+		*fastFlag,
 	)
 	err = a.Run()
 	if err != nil {

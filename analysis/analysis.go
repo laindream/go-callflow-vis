@@ -29,6 +29,7 @@ type Analysis struct {
 	flow      *flow.Flow
 	cachePath string
 	cache     *cache.FileCache
+	fastMode  bool
 }
 
 type ProgramAnalysisParam struct {
@@ -46,14 +47,16 @@ func NewAnalysis(
 	tests bool,
 	dir string,
 	args []string,
-	build []string) *Analysis {
+	build []string,
+	fastMode bool) *Analysis {
 	if config == nil {
 		fmt.Printf("Analysis.NewAnalysis: config is nil\n")
 		return nil
 	}
 	return &Analysis{
-		config: config,
-		cache:  cache.NewFileCache(cachePath),
+		config:   config,
+		cache:    cache.NewFileCache(cachePath),
+		fastMode: fastMode,
 		ProgramAnalysisParam: &ProgramAnalysisParam{
 			Algo:  algo,
 			Tests: tests,
@@ -137,7 +140,7 @@ func (a *Analysis) GenerateFlow() error {
 	if a.config == nil {
 		return errors.New("config is nil")
 	}
-	f, err := flow.NewFlow(a.config, a.callgraph)
+	f, err := flow.NewFlow(a.config, a.callgraph, a.fastMode)
 	if err != nil {
 		log.GetLogger().Errorf("Analysis.GenerateFlow: flow new error: %v", err)
 		return err

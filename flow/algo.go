@@ -97,13 +97,17 @@ func (f *Flow) findAllBipartite(isCallgraphJustReset bool) error {
 		return f.findAllBipartite(false)
 	}
 	if !isCallgraphJustReset && len(issueFuncs) == 0 {
-		log.GetLogger().Debugf("No Incremental Issue Funcs, Try No Issue Check")
-		if err := f.resetCallgraphIR(); err != nil {
-			return err
+		if f.fastMode {
+			log.GetLogger().Debugf("No Incremental Issue Funcs, Skip No Issue Check In Fast Mode")
+		} else {
+			log.GetLogger().Debugf("No Incremental Issue Funcs, Try No Issue Check")
+			if err := f.resetCallgraphIR(); err != nil {
+				return err
+			}
+			f.skipNodesIR(f.allIssueFuncs)
+			f.resetLayer()
+			return f.findAllBipartite(true)
 		}
-		f.skipNodesIR(f.allIssueFuncs)
-		f.resetLayer()
-		return f.findAllBipartite(true)
 	}
 	for i := len(f.Layers) - 2; i >= 0; i-- {
 		for j, _ := range f.Layers[i].Entities {

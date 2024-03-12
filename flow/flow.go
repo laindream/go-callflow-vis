@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
+func NewFlow(config *config.Config, callGraph *ir.Callgraph, fastMode bool) (*Flow, error) {
 	if config == nil {
 		return nil, fmt.Errorf("config is nil")
 	}
@@ -41,6 +41,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph) (*Flow, error) {
 		pkgPrefix: config.PackagePrefix,
 		callgraph: callGraph,
 		Layers:    layers,
+		fastMode:  fastMode,
 	}
 	log.GetLogger().Debugf("NewFlow: Generate Min Graph...")
 	err := f.UpdateMinGraph()
@@ -60,9 +61,9 @@ type Flow struct {
 	furyBuffer         []byte
 	callgraph          *ir.Callgraph
 	allIssueFuncs      map[string]bool
-	passNoIssueCheck   bool
 	Layers             []*Layer
 	isCompleteGenerate bool
+	fastMode           bool
 }
 
 func (f *Flow) initFuryBuffer() error {
@@ -76,7 +77,6 @@ func (f *Flow) initFuryBuffer() error {
 
 func (f *Flow) reset() {
 	f.allIssueFuncs = nil
-	f.passNoIssueCheck = false
 	f.resetLayer()
 }
 
