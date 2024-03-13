@@ -138,6 +138,8 @@ func main() {
 		r.StaticFS("/render/graph", http.FS(renderGraph))
 		renderDot, _ := fs.Sub(FS, "static/dot")
 		r.StaticFS("/render/dot", http.FS(renderDot))
+		renderDotSimple, _ := fs.Sub(FS, "static/dot_simple")
+		r.StaticFS("/render/dot_simple", http.FS(renderDotSimple))
 		if !*skipBrowser {
 			go openBrowser(fmt.Sprintf("http://%s:%s/render/dot/", *webHost, *webPort))
 		}
