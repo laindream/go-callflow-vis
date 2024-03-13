@@ -130,6 +130,10 @@ func main() {
 			graph := f.GetDot(false)
 			c.String(200, graph)
 		})
+		r.GET("/dot_simple", func(c *gin.Context) {
+			graph := f.GetDot(true)
+			c.String(200, graph)
+		})
 		renderGraph, _ := fs.Sub(FS, "static/render")
 		r.StaticFS("/render/graph", http.FS(renderGraph))
 		renderDot, _ := fs.Sub(FS, "static/dot")
