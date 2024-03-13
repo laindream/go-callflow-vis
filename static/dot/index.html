@@ -17,6 +17,7 @@
                     const nodeKey = d3.select(this).data()[0].key;
                     if (lastClickedNodeKey === nodeKey) {
                         d3.selectAll('.node,.edge').style('opacity', 1);
+                        d3.selectAll('.node ellipse').style('stroke-width', '').style('fill', '');
                         d3.selectAll('.edge text').style('fill', '');
                         d3.selectAll('.edge path').style('stroke', 'black').style('stroke-width', '');
                         d3.selectAll('.edge polygon').style('fill', 'black').style('stroke', 'black').style('stroke-width', '');
