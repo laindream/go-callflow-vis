@@ -6,6 +6,10 @@
 <script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
 <div id="graph" style="text-align: center;"></div>
 <script>
+    window.addEventListener('wheel', function(event) {
+        // 阻止默认的滚动行为
+        event.preventDefault();
+    }, { passive: false });
     let lastClickedNodeKey = null;
 
     function highlightOutFromEndpoint(n) {
