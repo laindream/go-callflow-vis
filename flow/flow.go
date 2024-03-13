@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/awalterschulze/gographviz"
 	"github.com/laindream/go-callflow-vis/cache"
@@ -53,6 +54,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph, fastMode bool) (*Fl
 	if err != nil {
 		return nil, err
 	}
+	f.CheckFlowEntities()
 	return f, nil
 }
 
@@ -64,6 +66,17 @@ type Flow struct {
 	Layers             []*Layer
 	isCompleteGenerate bool
 	fastMode           bool
+}
+
+func (f *Flow) CheckFlowEntities() {
+	for _, l := range f.Layers {
+		for _, e := range l.Entities {
+			if len(e.GetNodeSet(f.callgraph)) == 0 {
+				log.GetLogger().Warnf("No Node Matched for Entity:%s", e.String())
+			}
+		}
+	}
+	f.resetLayer()
 }
 
 func (f *Flow) initFuryBuffer() error {
@@ -584,6 +597,11 @@ type Entity struct {
 	InNodeSet   map[*ir.Node]bool
 	OutNodeSet  map[*ir.Node]bool
 	ExamplePath map[*ir.Node]map[*ir.Node][]*ir.Edge
+}
+
+func (e *Entity) String() string {
+	eStr, _ := json.Marshal(e.Entity)
+	return string(eStr)
 }
 
 func (e *Entity) GetInToOutEdgeSet(callgraphIR *ir.Callgraph) map[*ir.Node]map[*ir.Node][][]*ir.Edge {

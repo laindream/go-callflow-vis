@@ -20,10 +20,10 @@ type Layer struct {
 }
 
 type Entity struct {
-	Name      *mode.Mode `toml:"name"`
-	InSite    *mode.Mode `toml:"in_site"`
-	OutSite   *mode.Mode `toml:"out_site"`
-	Signature *mode.Mode `toml:"signature"`
+	Name      *mode.Mode `toml:"name" json:"name,omitempty"`
+	InSite    *mode.Mode `toml:"in_site" json:"in_site,omitempty"`
+	OutSite   *mode.Mode `toml:"out_site" json:"out_site,omitempty"`
+	Signature *mode.Mode `toml:"signature" json:"signature,omitempty"`
 }
 
 func LoadConfig(path string) (*Config, error) {
