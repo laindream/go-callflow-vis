@@ -32,10 +32,12 @@
                                 d3.select(this).select('polygon').style('fill', 'red').style('stroke', 'red').style('stroke-width', '3px');
                                 d3.select(this).select('text').style('fill', 'red');
                                 const [sourceKey, targetKey] = edgeKey.split('->');
-                                d3.selectAll('.node').filter(function () {
+                                const nodes = d3.selectAll('.node').filter(function () {
                                     const nodeData = d3.select(this).data()[0];
                                     return nodeData.key === sourceKey || nodeData.key === targetKey;
-                                }).style('opacity', 1);
+                                })
+                                nodes.style('opacity', 1);
+                                nodes.select('ellipse').style('stroke-width', '3px').style('fill', 'gray');
                             }
                         });
                     }
