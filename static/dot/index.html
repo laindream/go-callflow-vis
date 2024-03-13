@@ -16,7 +16,7 @@
                 d3.selectAll('.node').on('click', function () {
                     const nodeKey = d3.select(this).data()[0].key;
                     if (lastClickedNodeKey === nodeKey) {
-                        d3.selectAll('.node,.edge').style('opacity', 1);
+                        // d3.selectAll('.node,.edge').style('opacity', 1);
                         d3.selectAll('.node ellipse').style('stroke-width', '').style('fill', '');
                         d3.selectAll('.edge text').style('fill', '');
                         d3.selectAll('.edge path').style('stroke', 'black').style('stroke-width', '');
@@ -24,11 +24,11 @@
                         lastClickedNodeKey = null;
                     } else {
                         lastClickedNodeKey = nodeKey;
-                        d3.selectAll('.node,.edge').style('opacity', 0.35);
+                        // d3.selectAll('.node,.edge').style('opacity', 0.35);
                         d3.selectAll(`.edge`).each(function () {
                             const edgeKey = d3.select(this).data()[0].key;
                             if (edgeKey.startsWith(nodeKey + '->') || edgeKey.endsWith('->' + nodeKey)) {
-                                d3.select(this).style('opacity', 1)
+                                // d3.select(this).style('opacity', 1)
                                 d3.select(this).select('path').style('stroke', 'red').style('stroke-width', '5px');
                                 d3.select(this).select('polygon').style('fill', 'red').style('stroke', 'red').style('stroke-width', '3px');
                                 d3.select(this).select('text').style('fill', 'red');
@@ -37,7 +37,7 @@
                                     const nodeData = d3.select(this).data()[0];
                                     return nodeData.key === sourceKey || nodeData.key === targetKey;
                                 })
-                                nodes.style('opacity', 1);
+                                // nodes.style('opacity', 1);
                                 nodes.select('ellipse').style('stroke-width', '3px').style('fill', 'gray');
                             }
                         });
@@ -46,7 +46,7 @@
                 d3.selectAll('.edge').on('click', function () {
                     const edgeKey = d3.select(this).data()[0].key;
                     if (lastClickedNodeKey === edgeKey) {
-                        d3.selectAll('.node,.edge').style('opacity', 1);
+                        // d3.selectAll('.node,.edge').style('opacity', 1);
                         d3.selectAll('.node ellipse').style('stroke-width', '').style('fill', '');
                         d3.selectAll('.edge text').style('fill', '');
                         d3.selectAll('.edge path').style('stroke', 'black').style('stroke-width', '');
@@ -54,8 +54,8 @@
                         lastClickedNodeKey = null;
                     } else {
                         lastClickedNodeKey = edgeKey;
-                        d3.selectAll('.node,.edge').style('opacity', 0.35);
-                        d3.select(this).style('opacity', 1)
+                        // d3.selectAll('.node,.edge').style('opacity', 0.35);
+                        // d3.select(this).style('opacity', 1)
                         d3.select(this).select('path').style('stroke', 'red').style('stroke-width', '5px');
                         d3.select(this).select('polygon').style('fill', 'red').style('stroke', 'red').style('stroke-width', '3px');
                         d3.select(this).select('text').style('fill', 'red');
@@ -63,7 +63,7 @@
                         d3.selectAll(`.node`).each(function () {
                             const nodeKey = d3.select(this).data()[0].key;
                             if (nodeKey === sourceKey || nodeKey === targetKey) {
-                                d3.select(this).style('opacity', 1);
+                                // d3.select(this).style('opacity', 1);
                                 d3.select(this).select('ellipse').style('stroke-width', '3px').style('fill', 'gray');
                             }
                         });
