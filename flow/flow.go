@@ -44,6 +44,7 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph, fastMode bool) (*Fl
 		Layers:    layers,
 		fastMode:  fastMode,
 	}
+	f.CheckFlowEntities()
 	log.GetLogger().Debugf("NewFlow: Generate Min Graph...")
 	err := f.UpdateMinGraph()
 	if err != nil {
@@ -54,7 +55,6 @@ func NewFlow(config *config.Config, callGraph *ir.Callgraph, fastMode bool) (*Fl
 	if err != nil {
 		return nil, err
 	}
-	f.CheckFlowEntities()
 	return f, nil
 }
 
