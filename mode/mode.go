@@ -16,12 +16,38 @@ var (
 )
 
 type Mode struct {
+	OR    bool   `toml:"or" json:"or"`
+	AND   bool   `toml:"and" json:"and"`
+	Items []Item `toml:"items" json:"items"`
+}
+
+func (m *Mode) Match(s string) bool {
+	if m.OR == m.AND {
+		return false
+	}
+	if m.OR {
+		for _, item := range m.Items {
+			if item.Match(s) {
+				return true
+			}
+		}
+		return false
+	}
+	for _, item := range m.Items {
+		if !item.Match(s) {
+			return false
+		}
+	}
+	return true
+}
+
+type Item struct {
 	Exclude bool      `toml:"exclude" json:"exclude"`
 	Type    MatchType `toml:"type" json:"type"`
 	Content string    `toml:"content" json:"content"`
 }
 
-func (m *Mode) Match(s string) (result bool) {
+func (m *Item) Match(s string) (result bool) {
 	defer func() {
 		if m.Exclude {
 			result = !result
@@ -46,9 +72,9 @@ func (m *Mode) Match(s string) (result bool) {
 	return false
 }
 
-type ModeSet []*Mode
+type Set []*Mode
 
-func (ms ModeSet) Match(s string) bool {
+func (ms Set) Match(s string) bool {
 	for _, m := range ms {
 		if m.Match(s) {
 			return true

@@ -8,10 +8,10 @@ import (
 )
 
 type Config struct {
-	PackagePrefix string       `toml:"package_prefix" json:"-"`
-	Focus         mode.ModeSet `toml:"focus" json:"focus"`
-	Ignore        mode.ModeSet `toml:"ignore" json:"ignore"`
-	Layers        []*Layer     `toml:"layer" json:"-"`
+	PackagePrefix string   `toml:"package_prefix" json:"-"`
+	Focus         mode.Set `toml:"focus" json:"focus"`
+	Ignore        mode.Set `toml:"ignore" json:"ignore"`
+	Layers        []*Layer `toml:"layer" json:"-"`
 }
 
 type Layer struct {
@@ -20,10 +20,10 @@ type Layer struct {
 }
 
 type Entity struct {
-	Name      *mode.Mode `toml:"name" json:"name,omitempty"`
-	InSite    *mode.Mode `toml:"in_site" json:"in_site,omitempty"`
-	OutSite   *mode.Mode `toml:"out_site" json:"out_site,omitempty"`
-	Signature *mode.Mode `toml:"signature" json:"signature,omitempty"`
+	Name      *mode.Set `toml:"name" json:"name,omitempty"`
+	InSite    *mode.Set `toml:"in_site" json:"in_site,omitempty"`
+	OutSite   *mode.Set `toml:"out_site" json:"out_site,omitempty"`
+	Signature *mode.Set `toml:"signature" json:"signature,omitempty"`
 }
 
 func LoadConfig(path string) (*Config, error) {
