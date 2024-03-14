@@ -930,7 +930,7 @@ func matchesEntityIR(n *ir.Node, entity *Entity) bool {
 	return false
 }
 
-func isSiteMatchIR(s *ir.Site, site *mode.Set) bool {
+func isSiteMatchIR(s *ir.Site, site *mode.Mode) bool {
 	if s == nil || s.Name == "" {
 		return false
 	}
