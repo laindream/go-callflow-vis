@@ -813,9 +813,7 @@ func (e *Entity) UpdateNodeSetWithInSiteNodeSet(callgraphIR *ir.Callgraph) {
 			}
 		}
 	}
-	if len(nodeSet) > 0 {
-		e.NodeSet = nodeSet
-	}
+	e.NodeSet = nodeSet
 }
 
 func (e *Entity) UpdateNodeSetWithOutSiteNodeSet(callgraphIR *ir.Callgraph) {
@@ -837,9 +835,7 @@ func (e *Entity) UpdateNodeSetWithOutSiteNodeSet(callgraphIR *ir.Callgraph) {
 			}
 		}
 	}
-	if len(nodeSet) > 0 {
-		e.NodeSet = nodeSet
-	}
+	e.NodeSet = nodeSet
 }
 
 func (e *Entity) UpdateInSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
@@ -847,7 +843,7 @@ func (e *Entity) UpdateInSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*
 		return nil
 	}
 	if e.InSite == nil {
-		return nil
+		return make(map[*ir.Node]bool)
 	}
 	nodesSet := make(map[*ir.Node]bool)
 	for v, _ := range e.GetNodeSet(callgraphIR) {
@@ -859,9 +855,7 @@ func (e *Entity) UpdateInSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*
 			}
 		}
 	}
-	if len(nodesSet) > 0 {
-		e.InNodeSet = nodesSet
-	}
+	e.InNodeSet = nodesSet
 	return nodesSet
 }
 
@@ -870,7 +864,7 @@ func (e *Entity) UpdateOutSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[
 		return nil
 	}
 	if e.OutSite == nil {
-		return nil
+		return make(map[*ir.Node]bool)
 	}
 	nodesSet := make(map[*ir.Node]bool)
 	for v, _ := range e.GetNodeSet(callgraphIR) {
@@ -882,9 +876,7 @@ func (e *Entity) UpdateOutSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[
 			}
 		}
 	}
-	if len(nodesSet) > 0 {
-		e.OutNodeSet = nodesSet
-	}
+	e.OutNodeSet = nodesSet
 	return nodesSet
 }
 
