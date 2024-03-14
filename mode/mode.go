@@ -16,11 +16,17 @@ var (
 )
 
 type Mode struct {
+	Exclude bool      `toml:"exclude" json:"exclude"`
 	Type    MatchType `toml:"type" json:"type"`
 	Content string    `toml:"content" json:"content"`
 }
 
-func (m *Mode) Match(s string) bool {
+func (m *Mode) Match(s string) (result bool) {
+	defer func() {
+		if m.Exclude {
+			result = !result
+		}
+	}()
 	switch m.Type {
 	case MatchTypePrefix:
 		return strings.HasPrefix(s, m.Content)
