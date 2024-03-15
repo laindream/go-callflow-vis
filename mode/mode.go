@@ -22,6 +22,12 @@ type Mode struct {
 }
 
 func (m *Mode) Match(s string) bool {
+	if len(m.Items) == 0 {
+		return false
+	}
+	if len(m.Items) == 1 {
+		return m.Items[0].Match(s)
+	}
 	if m.OR == m.AND {
 		return false
 	}
