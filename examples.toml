@@ -1,60 +1,54 @@
-#focus: function set that you want to focus on
-[[focus]]
-# supported match mode: prefix, suffix, contain, full, regex
-type = "prefix"
-content = "a/b/c"
+# package_prefix is for trimming the function name in graph for human readability
+package_prefix = "github.com/username/project/"
 
-[[focus]]
-type = "suffix"
-content = "a/b/c"
 
+# focus is for filtering the functions to be included in the graph
 [[focus]]
-type = "contain"
-content = "a/b/c"
+# choose "and" or "or" logic to combine the items
+or = true
+# match rule for the function name
+# there are match type: "contain", "prefix", "suffix", "equal", "regexp"
+items = [{ type = "suffix", content = "funcNameA" }, { type = "prefix", content = "(*github.com/username/project/pkgA.structA)" }]
 
+# there can be multiple focus
 [[focus]]
-type = "full"
-content = "a/b/c"
+and = true
+# can set exclude = true to exclude the matched functions
+items = [{ type = "suffix", content = "funcNameB", exclude = true }, { type = "prefix", content = "(*github.com/username/project/pkgB.structB)" }]
 
-[[focus]]
-type = "regex"
-content = "a/b/c"
 
-#ignore: function set that you want to ignore
+# ignore is for filtering the functions to be excluded in the graph
 [[ignore]]
-type = "contain"
-content = "a/b/c"
+and = true
+items = [{ type = "regexp", content = ".*funcName.*" }, { type = "equal", content = "(*github.com/username/project/pkgC.structC).FuncC" }]
 
+# ignore is also can be multiple
 [[ignore]]
-type = "contain"
-content = "a/b/c"
+or = true
+items = [{ type = "suffix", content = "funcNameD" }, { type = "prefix", content = "(*github.com/username/project/pkgD.structD)" }]
 
-#layer: layer1 of function set
+
+# layer is a set of matched functions used to generate flow graph. Layers must be defined in order.
 [[layer]]
 name = "Layer1"
 [[layer.entities]]
-name = { type = "contain", content = "a/b/c.func1"}
-[[layer.entities]]
-name = { type = "contain", content = "a/b/c.func1"}
+# match rule for the function name
+name = { and = true, items = [{ type = "contain", content = "github.com/username/project/pkgAA" }, { type = "regexp", content = ".*funcNameD.*" }] }
+# match rule for the function signature
+signature = { or = true, items = [{ type = "contain", content = "bool" }] }
+# match rule for the function insite
+in_site = { or = true, items = [{ type = "contain", content = "invoke FuncBB" }] }
+# match rule for the function outsite
+out_site = { or = true, items = [{ type = "contain", content = "invoke FuncCC" }] }
+#another entity
+#[[layer.entities]] ...
 
-
-#layer: layer2 of function set
+# the next layer
 [[layer]]
 name = "Layer2"
-[[layer.entities]]
-signature = { type = "contain", content = "master"}
-in_site = { type = "contain", content = ", false:bool)"}
-[[layer.entities]]
-# supported filter function feature: name, signature, in_site, out_site
-signature = { type = "contain", content = "master"}
-in_site = { type = "contain", content = ", true:bool)"}
-out_site = { type = "contain", content = ", false:bool)"}
+# entities ...
 
-
-#layer: layer3 of function set
+# the next layer
 [[layer]]
 name = "Layer3"
-[[layer.entities]]
-name = { type = "contain", content = "a/b/c.func2"}
-[[layer.entities]]
-name = { type = "contain", content = "a/b/c.func2"}
+# entities ...

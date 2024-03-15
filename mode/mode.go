@@ -11,8 +11,8 @@ var (
 	MatchTypePrefix  MatchType = "prefix"
 	MatchTypeSuffix  MatchType = "suffix"
 	MatchTypeContain MatchType = "contain"
-	MatchTypeFull    MatchType = "full"
-	MatchTypeRegex   MatchType = "regex"
+	MatchTypeEqual   MatchType = "equal"
+	MatchTypeRegexp  MatchType = "regexp"
 )
 
 type Mode struct {
@@ -60,9 +60,9 @@ func (m *Item) Match(s string) (result bool) {
 		return strings.HasSuffix(s, m.Content)
 	case MatchTypeContain:
 		return strings.Contains(s, m.Content)
-	case MatchTypeFull:
+	case MatchTypeEqual:
 		return s == m.Content
-	case MatchTypeRegex:
+	case MatchTypeRegexp:
 		r, err := regexp.Compile(m.Content)
 		if err != nil {
 			return false
