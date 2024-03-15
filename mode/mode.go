@@ -59,6 +59,12 @@ func (m *Item) Match(s string) (result bool) {
 			result = !result
 		}
 	}()
+	if m.Content == "" {
+		return false
+	}
+	if m.Type == "" {
+		m.Type = MatchTypeEqual
+	}
 	switch m.Type {
 	case MatchTypePrefix:
 		return strings.HasPrefix(s, m.Content)

@@ -7,9 +7,9 @@ package_prefix = "github.com/username/project/"
 # choose "and" or "or" logic to combine the rules if there are multiple rules
 and = true
 # match rule for the function name
-# there are match type: "contain", "prefix", "suffix", "equal", "regexp"
+# there are match type: "contain", "prefix", "suffix", "equal", "regexp", default to use "equal" if not set type
 # can set exclude = true to exclude the matched functions
-rules = [{ type = "suffix", content = "funcNameB", exclude = true }, { type = "contain", content = "github.com/username/project/pkgB." }]
+rules = [{ type = "contain", content = "funcNameB", exclude = true }, { type = "prefix", content = "github.com/username/project/pkgB." }]
 
 # there can be multiple focus
 [[focus]]
