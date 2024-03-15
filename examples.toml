@@ -28,7 +28,7 @@ or = true
 rules = [{ type = "suffix", content = "funcNameD" }, { type = "prefix", content = "(*github.com/username/project/pkgD.structD)" }]
 
 
-# layer is a set of matched functions used to generate flow graph. Layers must be defined in order.
+# layer is a set of matched functions used to generate flow graph. layers must be defined in order.
 [[layer]]
 name = "Layer1"
 [[layer.entities]]
