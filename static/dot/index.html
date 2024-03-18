@@ -6,11 +6,157 @@
 <script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
 <div id="graph" style="text-align: center;"></div>
 <script>
-    window.addEventListener('wheel', function(event) {
+    window.addEventListener('wheel', function (event) {
         event.preventDefault();
-    }, { passive: false });
+    }, {passive: false});
 
     let lastClickedNodeKey = null;
+
+    function highlightOutFromEndpoint(n) {
+        if (!isEndpoint(n)) {
+            return;
+        }
+        const visited = new Set();
+        const queue = [];
+        visited.add(n);
+        const outEdges = getOutEdges(n);
+        for (const edge of outEdges) {
+            const [_, targetKey] = edge.data()[0].key.split('->');
+            let targetNode = null;
+            d3.selectAll('.node').each(function () {
+                const node = d3.select(this);
+                if (node.data()[0].key === targetKey) {
+                    targetNode = node;
+                }
+            });
+            if (targetNode === null) {
+                continue;
+            }
+            highlightEdge(edge);
+            queue.push(targetNode);
+        }
+        while (queue.length > 0) {
+            const node = queue.shift();
+            if (visited.has(node) || isEndpoint(node)) {
+                continue;
+            }
+            visited.add(node);
+            const outEdges = getOutEdges(node);
+            for (const edge of outEdges) {
+                const [_, targetKey] = edge.data()[0].key.split('->');
+                let targetNode = null;
+                d3.selectAll('.node').each(function () {
+                    const node = d3.select(this);
+                    if (node.data()[0].key === targetKey) {
+                        targetNode = node;
+                    }
+                });
+                if (targetNode === null) {
+                    continue;
+                }
+                highlightEdge(edge);
+                queue.push(targetNode);
+            }
+        }
+    }
+
+    function highlightInFromEndpoint(n) {
+        if (!isEndpoint(n)) {
+            return;
+        }
+        const visited = new Set();
+        const queue = [];
+        visited.add(n);
+        const inEdges = getInEdges(n);
+        for (const edge of inEdges) {
+            const [sourceKey, _] = edge.data()[0].key.split('->');
+            let sourceNode = null;
+            d3.selectAll('.node').each(function () {
+                const node = d3.select(this);
+                if (node.data()[0].key === sourceKey) {
+                    sourceNode = node;
+                }
+            });
+            if (sourceNode === null) {
+                continue;
+            }
+            highlightEdge(edge);
+            queue.push(sourceNode);
+        }
+        while (queue.length > 0) {
+            const node = queue.shift();
+            if (visited.has(node) || isEndpoint(node)) {
+                continue;
+            }
+            visited.add(node);
+            const inEdges = getInEdges(node);
+            for (const edge of inEdges) {
+                const [sourceKey, _] = edge.data()[0].key.split('->');
+                let sourceNode = null;
+                d3.selectAll('.node').each(function () {
+                    const node = d3.select(this);
+                    if (node.data()[0].key === sourceKey) {
+                        sourceNode = node;
+                    }
+                });
+                if (sourceNode === null) {
+                    continue;
+                }
+                highlightEdge(edge);
+                queue.push(sourceNode);
+            }
+        }
+    }
+
+    function isEndpoint(n) {
+        let isRed = false;
+        if (n.select('ellipse').style('stroke') === 'red' || n.select('ellipse').style('stroke') === 'rgb(255, 0, 0)') {
+            isRed = true;
+        }
+        return isRed;
+    }
+
+    function getOutEdges(n) {
+        let edges = []
+        d3.selectAll('.edge').each(function () {
+            const edgeKey = d3.select(this).data()[0].key;
+            if (edgeKey.startsWith(n.data()[0].key + '->')) {
+                edges.push(d3.select(this));
+            }
+        });
+        return edges;
+    }
+
+    function getInEdges(n) {
+        let edges = []
+        d3.selectAll('.edge').each(function () {
+            const edgeKey = d3.select(this).data()[0].key;
+            if (edgeKey.endsWith('->' + n.data()[0].key)) {
+                edges.push(d3.select(this));
+            }
+        });
+        return edges;
+    }
+
+    function highlightNode(n) {
+        // n.style('opacity', 1);
+        n.select('ellipse').style('stroke-width', '3px').style('fill', 'gray');
+    }
+
+    function highlightEdge(e) {
+        // e.style('opacity', 1);
+        e.select('path').style('stroke', 'red').style('stroke-width', '5px');
+        e.select('polygon').style('fill', 'red').style('stroke', 'red').style('stroke-width', '3px');
+        e.select('text').style('fill', 'red');
+        const [sourceKey, targetKey] = e.data()[0].key.split('->');
+        d3.selectAll('.node').filter(function () {
+            const node = d3.select(this);
+            const nodeKey = node.data()[0].key;
+            if (nodeKey === sourceKey || nodeKey === targetKey) {
+                highlightNode(node);
+            }
+        })
+    }
 
     function highlightNodeEdgesByKey(dotString) {
         const graphviz = d3.select("#graph").graphviz();
@@ -28,23 +174,28 @@
                         lastClickedNodeKey = null;
                     } else {
                         lastClickedNodeKey = nodeKey;
-                        // d3.selectAll('.node,.edge').style('opacity', 0.35);
-                        d3.selectAll(`.edge`).each(function () {
-                            const edgeKey = d3.select(this).data()[0].key;
-                            if (edgeKey.startsWith(nodeKey + '->') || edgeKey.endsWith('->' + nodeKey)) {
-                                // d3.select(this).style('opacity', 1)
-                                d3.select(this).select('path').style('stroke', 'red').style('stroke-width', '5px');
-                                d3.select(this).select('polygon').style('fill', 'red').style('stroke', 'red').style('stroke-width', '3px');
-                                d3.select(this).select('text').style('fill', 'red');
-                                const [sourceKey, targetKey] = edgeKey.split('->');
-                                const nodes = d3.selectAll('.node').filter(function () {
-                                    const nodeData = d3.select(this).data()[0];
-                                    return nodeData.key === sourceKey || nodeData.key === targetKey;
-                                })
-                                // nodes.style('opacity', 1);
-                                nodes.select('ellipse').style('stroke-width', '3px').style('fill', 'gray');
-                            }
-                        });
+                        if (isEndpoint(d3.select(this))) {
+                            highlightOutFromEndpoint(d3.select(this));
+                            highlightInFromEndpoint(d3.select(this));
+                        } else {
+                            // d3.selectAll('.node,.edge').style('opacity', 0.35);
+                            d3.selectAll(`.edge`).each(function () {
+                                const edgeKey = d3.select(this).data()[0].key;
+                                if (edgeKey.startsWith(nodeKey + '->') || edgeKey.endsWith('->' + nodeKey)) {
+                                    // d3.select(this).style('opacity', 1)
+                                    d3.select(this).select('path').style('stroke', 'red').style('stroke-width', '5px');
+                                    d3.select(this).select('polygon').style('fill', 'red').style('stroke', 'red').style('stroke-width', '3px');
+                                    d3.select(this).select('text').style('fill', 'red');
+                                    const [sourceKey, targetKey] = edgeKey.split('->');
+                                    const nodes = d3.selectAll('.node').filter(function () {
+                                        const nodeData = d3.select(this).data()[0];
+                                        return nodeData.key === sourceKey || nodeData.key === targetKey;
+                                    })
+                                    // nodes.style('opacity', 1);
+                                    nodes.select('ellipse').style('stroke-width', '3px').style('fill', 'gray');
+                                }
+                            });
+                        }
                     }
                 });
                 d3.selectAll('.edge').on('click', function () {
