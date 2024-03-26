@@ -2,17 +2,17 @@
 
 - [中文👈](README_zh.md)
 
-## go-callflow-vis
+# go-callflow-vis
 
 go-callflow-vis是一个命令行工具, 专为分析Golang项目中指定函数的调用关系而设计. 它通过分析代码来识别不同层级之间的函数调用关系, 并生成一个多层二分图,从而帮助开发者理解和优化他们的代码结构.
 
-### 核心概念
+## 核心概念
 
 go-callflow-vis的一个核心概念是调用层级.
 
 此工具允许你指定每一层的核心函数, 包括每个调用层级中需要包含的函数或一类函数.
 
-### 特性
+## 特性
 
 多层二分图输出: 显示相邻层函数之间的可达性, 包括两个可达函数之间的可能调用路径.
 
@@ -20,13 +20,13 @@ go-callflow-vis的一个核心概念是调用层级.
 
 可视化: 通过可视化调用路径, 帮助开发者识别和优化代码结构.
 
-### 安装
+## 安装
 
 ```shell
 go install github.com/laindream/go-callflow-vis@latest
 ```
 
-### 使用
+## 使用
 
 这里我们以对[go-ethereum](https://github.com/ethereum/go-ethereum)的分析为例(详情见[example](example)目录).
 
