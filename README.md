@@ -4,27 +4,25 @@
 
 English / [简体中文](README_zh.md)
 
-<p align="center"><b>go-callflow-vis</b> is a Go efficiency tool for analyzing and visualizing the reachability and call flow</p>
-
-<p align="center">among functions belonging to different layers of a software architecture.</p>
+<p align="center"><b>go-callflow-vis</b> is a tool for analyzing and visualizing complex software architecture hierarchies</p>
 
 ---
 
 </div>
 
-## Core Concepts
+## Introduction
 
-One of the core concepts of go-callflow-vis is the call hierarchy.
+Traditional static analysis tools(like [go-callvis](https://github.com/ondrajz/go-callvis)) produce a complete call graph for a project. However, when dealing with complex projects, the result is often a tangled mess, difficult to discern, and loses practical value. In contrast, go-callflow-vis offers a more refined and controllable method for analyzing the architectural hierarchies of complex software.
 
-This tool allows you to designate core functions for each layer, including the functions or a class of functions that should be included in each call level.
+go-callflow-vis allows users to define a series of ordered call hierarchies (for instance, in a typical Web project, these layers might be API->Operator->Manager->DAO) and enables specifying key functions or function categories for each layer through a configuration file. go-callflow-vis can analyze and visualize the reachability and call flow between these hierarchical functions. For two reachable functions across adjacent layers, go-callflow-vis only provides one example path to prevent the call graph from becoming overly complicated, ensuring that the functions' reachability is accurately represented.
 
 ## Features
 
-Multi-level bipartite graph output: Displays the reachability between functions in adjacent layers, including the possible call paths between two reachable functions.
+**Hierarchical Call Flow Output**: Focuses on the reachability and call flow between functions of adjacent layers, avoiding overly complex results.
 
-Flexibility: Allows users to customize the key functions or function categories for each layer for more precise analysis of the project structure.
+**Flexible Configuration**: Allows users to define key functions or function categories for each layer, enabling more precise project structure analysis.
 
-Visualization: Assists developers in identifying and optimizing code structure through visualized call paths.
+**Visualization and Interaction**: Offers excellent, interactive visual results, helping developers understand and optimize code structure more intuitively.
 
 ## Installation
 
