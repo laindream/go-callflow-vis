@@ -2,9 +2,9 @@
 
 <p align="center">English / [简体中文](README_zh.md)</p>
 
-<p align="center"><b>go-callflow-vis</b> is a Go efficiency tool for analyzing and visualizing</p>
+<p align="center"><b>go-callflow-vis</b> is a Go efficiency tool for analyzing and visualizing the reachability and call flow</p>
 
-<p align="center">the reachability and call flow among functions belonging to different call levels.</p>
+<p align="center">among functions belonging to different layers of a software architecture.</p>
 
 ## Core Concepts
 
