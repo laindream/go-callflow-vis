@@ -6,13 +6,13 @@
 
 go-callflow-vis is a command-line tool designed specifically for analyzing the call relationships of specified functions within Golang projects. It identifies the function call relationships between different levels by analyzing the code and generates a multi-level bipartite graph, thereby assisting developers in understanding and optimizing their code structure.
 
-#### Core Concepts
+### Core Concepts
 
 One of the core concepts of go-callflow-vis is the call hierarchy.
 
 This tool allows you to designate core functions for each layer, including the functions or a class of functions that should be included in each call level.
 
-#### Features
+### Features
 
 Multi-level bipartite graph output: Displays the reachability between functions in adjacent layers, including the possible call paths between two reachable functions.
 
@@ -20,13 +20,13 @@ Flexibility: Allows users to customize the key functions or function categories 
 
 Visualization: Assists developers in identifying and optimizing code structure through visualized call paths.
 
-#### Installation
+### Installation
 
 ```shell
 go install github.com/laindream/go-callflow-vis@latest
 ```
 
-#### Usage
+### Usage
 
 Here, we use the analysis of [go-ethereum](https://github.com/ethereum/go-ethereum) as an example (see the [example](example) directory for details).
 
