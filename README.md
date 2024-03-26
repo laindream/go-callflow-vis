@@ -1,6 +1,8 @@
+<div align="center">
+
 <h1 align="center">go-callflow-vis</h1>
 
-<p align="center">English / [简体中文](README_zh.md)</p>
+English / [简体中文](README_zh.md)
 
 <p align="center"><b>go-callflow-vis</b> is a Go efficiency tool for analyzing and visualizing the reachability and call flow</p>
 
