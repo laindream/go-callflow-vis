@@ -18,11 +18,11 @@ go-callflow-vis allows users to define a series of ordered call hierarchies (for
 
 ## Features
 
-**Hierarchical Call Flow Output**: Focuses on the reachability and call flow between functions of adjacent layers, avoiding overly complex results.
+- **Hierarchical Call Flow Output**: Focuses on the reachability and call flow between functions of adjacent layers, avoiding overly complex results.
 
-**Flexible Configuration**: Allows users to define key functions or function categories for each layer, enabling more precise project structure analysis.
+- **Flexible Configuration**: Allows users to define key functions or function categories for each layer, enabling more precise project structure analysis.
 
-**Visualization and Interaction**: Offers excellent, interactive visual results, helping developers understand and optimize code structure more intuitively.
+- **Visualization and Interaction**: Offers excellent, interactive visual results, helping developers understand and optimize code structure more intuitively.
 
 ## Installation
 
