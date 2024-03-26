@@ -62,7 +62,7 @@ name = { rules = [{ type = "contain", content = "triedb.Database" }] }
 接下来, 假设你已经下载了go-ethereum的源码, 并且已经安装了go-callflow-vis; 那么进入cmd/geth目录, 你可以通过以下命令开始分析(快速脚本见[go_eth_example.sh](example/go_eth_example.sh)):
 
 ```shell
-#直接运行go-callflow-vis查看详细命令用法
+# run go-callflow-vis directly to see detailed command usage
 go-callflow-vis -config init_genesis_analysis.toml -web .
 ```
 

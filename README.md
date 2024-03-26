@@ -62,7 +62,7 @@ name = { rules = [{ type = "contain", content = "triedb.Database" }] }
 Next, assuming you have downloaded the source code of go-ethereum and installed go-callflow-vis; then, entering the cmd/geth directory, you can start the analysis with the following command (see the quick script in [go_eth_example.sh](example/go_eth_example.sh)):
 
 ```shell
-# Run go-callflow-vis directly to see detailed command usage
+# run go-callflow-vis directly to see detailed command usage
 go-callflow-vis -config init_genesis_analysis.toml -web .
 ```
 
