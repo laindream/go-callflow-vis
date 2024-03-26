@@ -28,7 +28,7 @@ go install github.com/laindream/go-callflow-vis@latest
 
 **编写配置文件**
 
-假设你想要快速分析go-ethereum中创建创世区块时对MPT(Merkle Patricia Trie)DB的调用关系,你可以如下编写配置文件(你把它命名为):
+假设你想要快速分析go-ethereum中创建创世区块时对MPT(Merkle Patricia Trie)DB的调用关系,你可以如下编写配置文件([example.toml](example.toml)中介绍了如何进行详细配置):
 
 ```toml
 # file:init_genesis_analysis.toml
