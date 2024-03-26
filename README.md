@@ -1,10 +1,8 @@
-- [English👈](README.md)
+<h1 align="center">go-callflow-vis</h1>
 
-- [中文👈](README_zh.md)
+English / [简体中文](README_zh.md)
 
-# go-callflow-vis
-
-go-callflow-vis is a command-line tool designed specifically for analyzing the call relationships of specified functions within Golang projects. It identifies the function call relationships between different levels by analyzing the code and generates a multi-level bipartite graph, thereby assisting developers in understanding and optimizing their code structure.
+<p align="center"><b>go-callflow-vis</b> is a Go efficiency tool for analyzing and visualizing the reachability and call flow among functions belonging to different call levels.</p>
 
 ## Core Concepts
 
