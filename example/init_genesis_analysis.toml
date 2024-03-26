@@ -1,13 +1,20 @@
+# file:init_genesis_analysis.toml
+
+# package_prefix is for trimming the function name in graph for human readability
 package_prefix = "github.com/ethereum/go-ethereum/"
 
 
+# layer is a set of matched functions used to generate flow graph. layers must be defined in order.
 [[layer]]
-name = "Layer1"
+name = "CMD Layer"
 [[layer.entities]]
+# match rule for the function name
+# there are match type: "contain", "prefix", "suffix", "equal", "regexp", default to use "equal" if not set type
+# can set exclude = true to exclude the matched functions
 name = { rules = [{ type = "suffix", content = "initGenesis" }] }
 
 
 [[layer]]
-name = "Layer2"
+name = "DB Layer"
 [[layer.entities]]
 name = { rules = [{ type = "contain", content = "triedb.Database" }] }
