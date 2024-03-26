@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="page/header.jpg" alt="icon"/>
+
 <h1 align="center">go-callflow-vis</h1>
 
 English / [简体中文](README_zh.md)
