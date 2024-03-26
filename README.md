@@ -8,6 +8,8 @@ English / [简体中文](README_zh.md)
 
 <p align="center">among functions belonging to different layers of a software architecture.</p>
 
+---
+
 </div>
 
 ## Core Concepts
