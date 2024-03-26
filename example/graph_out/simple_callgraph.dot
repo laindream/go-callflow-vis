@@ -1,0 +1,40 @@
+digraph Flow {
+	newrank=true;
+	rankdir=LR;
+	11597->40713[ label="defer (*node.Node).Close(t30)->...->(*triedb.Database).Dereference(t51, t117)" ];
+	11597->8282[ label="defer (*triedb.Database).Close(t81)" ];
+	11597->46333[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)->...->(*triedb.Database).Commit(triedb, t17, true:bool)" ];
+	11597->46336[ label="defer (*node.Node).Close(t30)->...->(*triedb.Database).Size(t51)" ];
+	11597->32899[ label="defer (*node.Node).Close(t30)->...->(*triedb.Database).Scheme(t15)" ];
+	11597->49385[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)->...->(*triedb.Database).Update(t200, t185, t190, block, t11, t197)" ];
+	11597->58461[ label="defer (*node.Node).Close(t30)->...->(*triedb.Database).Journal(t29, t32)" ];
+	11597->33296[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)->...->(*triedb.Database).IsVerkle(t1)" ];
+	11597->67906[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)->...->invoke t19.InsertPreimage(t3)" ];
+	11597->43858[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)->...->invoke db.Reader(stateRoot)" ];
+	11597->36719[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)->...->(*triedb.Database).Initialized(triedb, t37)" ];
+	subgraph cluster_0 {
+	rank=same;
+	style=invis;
+	11597 [ color=red, label="cmd/geth.initGenesis" ];
+
+}
+;
+	subgraph cluster_1 {
+	rank=same;
+	style=invis;
+	32899 [ color=red, label="(*triedb.Database).Scheme" ];
+	33296 [ color=red, label="(*triedb.Database).IsVerkle" ];
+	36719 [ color=red, label="(*triedb.Database).Initialized" ];
+	40713 [ color=red, label="(*triedb.Database).Dereference" ];
+	43858 [ color=red, label="(*triedb.Database).Reader" ];
+	46333 [ color=red, label="(*triedb.Database).Commit" ];
+	46336 [ color=red, label="(*triedb.Database).Size" ];
+	49385 [ color=red, label="(*triedb.Database).Update" ];
+	58461 [ color=red, label="(*triedb.Database).Journal" ];
+	67906 [ color=red, label="(*triedb.Database).InsertPreimage" ];
+	8282 [ color=red, label="(*triedb.Database).Close" ];
+
+}
+;
+
+}

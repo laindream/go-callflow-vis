@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+const version = "0.1.0"
+
 const Usage = `Usage: go-callflow-vis [OPTIONS] PACKAGE...
 Examples: (When you are in the root directory of the project)
     go-callflow-vis -config ./config.toml .
@@ -53,6 +55,7 @@ var (
 	webHost     = flag.String("web-host", "localhost", "Host to serve the web on")
 	webPort     = flag.String("web-port", "45789", "Port to serve the web on")
 	debugFlag   = flag.Bool("debug", false, "Print debug information")
+	showVersion = flag.Bool("version", false, "Show version")
 )
 
 //go:embed static
@@ -60,6 +63,11 @@ var FS embed.FS
 
 func main() {
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("go-callflow-vis version %s\n", version)
+		os.Exit(0)
+	}
 
 	args := flag.Args()
 

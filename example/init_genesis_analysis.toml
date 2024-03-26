@@ -1,0 +1,13 @@
+package_prefix = "github.com/ethereum/go-ethereum/"
+
+
+[[layer]]
+name = "Layer1"
+[[layer.entities]]
+name = { rules = [{ type = "suffix", content = "initGenesis" }] }
+
+
+[[layer]]
+name = "Layer2"
+[[layer.entities]]
+name = { rules = [{ type = "contain", content = "triedb.Database" }] }

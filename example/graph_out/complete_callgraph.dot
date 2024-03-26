@@ -1,0 +1,66 @@
+digraph Flow {
+	newrank=true;
+	rankdir=LR;
+	8266->57931[ label="(*Node).stopServices(n, t12)" ];
+	13117->46336[ label="(*triedb.Database).Size(t51)" ];
+	41202->12100[ label="invoke db.OpenTrie(root)" ];
+	41203->60738[ label="invoke t62.Commit(true:bool)" ];
+	60738->67906[ label="invoke t19.InsertPreimage(t3)" ];
+	12100->68785[ label="trie.NewVerkleTrie(root, t6, t5)" ];
+	11597->20404[ label="core.SetupGenesisBlockWithOverride(t68, t81, t18, t32)" ];
+	41203->49385[ label="(*triedb.Database).Update(t200, t185, t190, block, t11, t197)" ];
+	57931->13111[ label="invoke t9.Stop()" ];
+	20404->16891[ label="(*Genesis).Commit(t20, db, triedb)" ];
+	16895->41203[ label="(*core/state.StateDB).Commit(t3, 0:uint64, false:bool)" ];
+	11597->8282[ label="defer (*triedb.Database).Close(t81)" ];
+	11597->8266[ label="defer (*node.Node).Close(t30)" ];
+	13117->32899[ label="(*triedb.Database).Scheme(t15)" ];
+	20404->36719[ label="(*triedb.Database).Initialized(triedb, t37)" ];
+	16895->46333[ label="(*triedb.Database).Commit(triedb, t17, true:bool)" ];
+	13117->58461[ label="(*triedb.Database).Journal(t29, t32)" ];
+	16891->16895[ label="flushAlloc(t16, db, triedb, t17)" ];
+	13117->40713[ label="(*triedb.Database).Dereference(t51, t117)" ];
+	16895->41202[ label="core/state.New(t0, t1, nil:*core/state/snapshot.Tree)" ];
+	12100->33296[ label="(*triedb.Database).IsVerkle(t1)" ];
+	68785->20196[ label="newTrieReader(root, [32]byte{}:common.Hash, db)" ];
+	20196->43858[ label="invoke db.Reader(stateRoot)" ];
+	13111->13117[ label="(*core.BlockChain).Stop(t19)" ];
+	subgraph cluster_0 {
+	rank=same;
+	style=invis;
+	11597 [ color=red, label="cmd/geth.initGenesis" ];
+
+}
+;
+	subgraph cluster_1 {
+	rank=same;
+	style=invis;
+	32899 [ color=red, label="(*triedb.Database).Scheme" ];
+	33296 [ color=red, label="(*triedb.Database).IsVerkle" ];
+	36719 [ color=red, label="(*triedb.Database).Initialized" ];
+	40713 [ color=red, label="(*triedb.Database).Dereference" ];
+	43858 [ color=red, label="(*triedb.Database).Reader" ];
+	46333 [ color=red, label="(*triedb.Database).Commit" ];
+	46336 [ color=red, label="(*triedb.Database).Size" ];
+	49385 [ color=red, label="(*triedb.Database).Update" ];
+	58461 [ color=red, label="(*triedb.Database).Journal" ];
+	67906 [ color=red, label="(*triedb.Database).InsertPreimage" ];
+	8282 [ color=red, label="(*triedb.Database).Close" ];
+
+}
+;
+	12100 [ label="(*core/state.cachingDB).OpenTrie" ];
+	13111 [ label="(*eth.Ethereum).Stop" ];
+	13117 [ label="(*core.BlockChain).Stop" ];
+	16891 [ label="(*core.Genesis).Commit" ];
+	16895 [ label="core.flushAlloc" ];
+	20196 [ label="trie.newTrieReader" ];
+	20404 [ label="core.SetupGenesisBlockWithOverride" ];
+	41202 [ label="core/state.New" ];
+	41203 [ label="(*core/state.StateDB).Commit" ];
+	57931 [ label="(*node.Node).stopServices" ];
+	60738 [ label="(*trie.StateTrie).Commit" ];
+	68785 [ label="trie.NewVerkleTrie" ];
+	8266 [ label="(*node.Node).Close" ];
+
+}
