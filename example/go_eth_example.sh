@@ -12,4 +12,4 @@ cd cmd/geth || exit
 
 go install github.com/laindream/go-callflow-vis@latest
 
-go-callflow-vis -config ../../../init_genesis_analysis.toml -web -debug -out-dir ../../.. .
+go-callflow-vis -config ../../../init_genesis_analysis.toml -web -debug -out-dir ../../.. -cache-dir ../../../.go_callflow_vis_cache .
