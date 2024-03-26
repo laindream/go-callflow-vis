@@ -70,7 +70,7 @@ go-callflow-vis -config init_genesis_analysis.toml -web .
 
 If everything goes well, you will be able to see your browser pop up and display the visualized and interactive analysis results.
 
-In addition, the program will output the analysis call graph([dot文件](example/graph_out)) and the call chain list([csv文件](example/path_out)), default location: `./graph_out` and `./path_out` .
+In addition, the program will output the analysis call graph([dot file](example/graph_out)) and the call chain list([csv file](example/path_out)), default location: `./graph_out` and `./path_out` .
 
 You can also obtain visualized svg files from the call graph's dot files (requires installing [graphviz](https://graphviz.org/)).
 
