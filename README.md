@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="page/header-cover.jpg" alt="icon"/>
+<img src="docs/image/header-cover.jpg" alt="icon"/>
 
 <h1 align="center">go-callflow-vis</h1>
 
