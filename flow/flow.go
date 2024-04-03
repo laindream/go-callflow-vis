@@ -135,10 +135,22 @@ func (f *Flow) Generate() error {
 
 func (f *Flow) PrintOriginalFlow() {
 	for i, _ := range f.Layers {
-		inAllNode := len(f.Layers[i].GetInAllNodeSet(f.callgraph))
-		outAllNode := len(f.Layers[i].GetOutAllNodeSet(f.callgraph))
+		fileInNodeName := fmt.Sprintf("original_flow_%d_in_all_node.csv", i)
+		inNodeContent := ""
+		fileOutNodeName := fmt.Sprintf("original_flow_%d_out_all_node.csv", i)
+		outNodeContent := ""
+		inAllNode := f.Layers[i].GetInAllNodeSet(f.callgraph)
+		for n, _ := range inAllNode {
+			inNodeContent += fmt.Sprintf("%s\n", n.Func.Name)
+		}
+		outAllNode := f.Layers[i].GetOutAllNodeSet(f.callgraph)
+		for n, _ := range outAllNode {
+			outNodeContent += fmt.Sprintf("%s\n", n.Func.Name)
+		}
 		log.GetLogger().Debugf("Orignial Layers[%d] InAllNode:%d, OutAllNode:%d",
-			i, inAllNode, outAllNode)
+			i, len(inAllNode), len(outAllNode))
+		util.WriteToFile(inNodeContent, fmt.Sprintf("%s/%s", ".go_callflow_vis_debug", fileInNodeName))
+		util.WriteToFile(outNodeContent, fmt.Sprintf("%s/%s", ".go_callflow_vis_debug", fileOutNodeName))
 	}
 	f.resetLayer()
 }
@@ -146,11 +158,35 @@ func (f *Flow) PrintOriginalFlow() {
 func (f *Flow) PrintFlow() {
 	log.GetLogger().Debugf("Flow issueFuncs:%d", len(f.allIssueFuncs))
 	for i, _ := range f.Layers {
-		inAllNode := len(f.Layers[i].GetInAllNodeSetOnlyRead(f.callgraph))
-		outAllNode := len(f.Layers[i].GetOutAllNodeSetOnlyRead(f.callgraph))
+		fileInNodeName := fmt.Sprintf("final_flow_%d_in_all_node.csv", i)
+		inNodeContent := ""
+		fileOutNodeName := fmt.Sprintf("final_flow_%d_out_all_node.csv", i)
+		outNodeContent := ""
+		fileStartNodeName := fmt.Sprintf("final_flow_%d_start_node.csv", i)
+		startNodeContent := ""
+		fileEndNodeName := fmt.Sprintf("final_flow_%d_end_node.csv", i)
+		endNodeContent := ""
+		inAllNode := f.Layers[i].GetInAllNodeSetOnlyRead(f.callgraph)
+		for n, _ := range inAllNode {
+			inNodeContent += fmt.Sprintf("%s\n", n.Func.Name)
+		}
+		outAllNode := f.Layers[i].GetOutAllNodeSetOnlyRead(f.callgraph)
+		for n, _ := range outAllNode {
+			outNodeContent += fmt.Sprintf("%s\n", n.Func.Name)
+		}
 		start, end := GetStartAndEndFromExamplePath(f.Layers[i].ExamplePath)
+		for n, _ := range start {
+			startNodeContent += fmt.Sprintf("%s\n", n.Func.Name)
+		}
+		for n, _ := range end {
+			endNodeContent += fmt.Sprintf("%s\n", n.Func.Name)
+		}
 		log.GetLogger().Debugf("Layers[%d] InAllNode:%d, OutAllNode:%d, start:%d, end:%d",
-			i, inAllNode, outAllNode, len(start), len(end))
+			i, len(inAllNode), len(outAllNode), len(start), len(end))
+		util.WriteToFile(inNodeContent, fmt.Sprintf("%s/%s", ".go_callflow_vis_debug", fileInNodeName))
+		util.WriteToFile(outNodeContent, fmt.Sprintf("%s/%s", ".go_callflow_vis_debug", fileOutNodeName))
+		util.WriteToFile(startNodeContent, fmt.Sprintf("%s/%s", ".go_callflow_vis_debug", fileStartNodeName))
+		util.WriteToFile(endNodeContent, fmt.Sprintf("%s/%s", ".go_callflow_vis_debug", fileEndNodeName))
 	}
 }
 
