@@ -284,7 +284,7 @@ func (f *Flow) GetDot(isSimple bool) string {
 		for k, _ := range l.ExamplePath {
 			for k2, _ := range l.ExamplePath[k] {
 				if isSimple {
-					simpleEdge := util.GetSimpleEdgeForPath(l.ExamplePath[k][k2])
+					simpleEdge := getSimpleEdgeForPath(l.ExamplePath[k][k2])
 					if simpleEdge == nil {
 						continue
 					}
@@ -812,4 +812,17 @@ func (e *Entity) UpdateOutNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*ir.
 	}
 	e.OutNodeSet = nodesSet
 	return nodesSet
+}
+
+func getSimpleEdgeForPath(path []*ir.Edge) *ir.Edge {
+	if len(path) == 0 {
+		return nil
+	}
+	if len(path) == 1 {
+		return path[0]
+	}
+	caller := path[0].GetCaller()
+	callee := path[len(path)-1].GetCallee()
+	site := fmt.Sprintf("%s->...->%s", path[0].GetSite().GetName(), path[len(path)-1].GetSite().GetName())
+	return &ir.Edge{Caller: caller, Callee: callee, Site: &ir.Site{Name: site}}
 }

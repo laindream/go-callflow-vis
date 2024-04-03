@@ -4,8 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
-	"github.com/laindream/go-callflow-vis/ir"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,17 +51,4 @@ func GetHash(o interface{}) string {
 	jsonStr, _ := json.Marshal(o)
 	bytes := md5.Sum(jsonStr)
 	return hex.EncodeToString(bytes[:])
-}
-
-func GetSimpleEdgeForPath(path []*ir.Edge) *ir.Edge {
-	if len(path) == 0 {
-		return nil
-	}
-	if len(path) == 1 {
-		return path[0]
-	}
-	caller := path[0].GetCaller()
-	callee := path[len(path)-1].GetCallee()
-	site := fmt.Sprintf("%s->...->%s", path[0].GetSite().GetName(), path[len(path)-1].GetSite().GetName())
-	return &ir.Edge{Caller: caller, Callee: callee, Site: &ir.Site{Name: site}}
 }
