@@ -844,7 +844,7 @@ func (e *Entity) UpdateNodeSetWithInSiteNodeSet(callgraphIR *ir.Callgraph) {
 	nodeSet := make(map[*ir.Node]bool)
 	for n, _ := range e.InNodeSet {
 		for _, eOut := range n.Out {
-			if matchesEntityIR(eOut.Callee, e) {
+			if matchesEntityIR(eOut.Callee, e) && isSiteMatchIR(eOut.Site, e.InSite) {
 				nodeSet[eOut.Callee] = true
 			}
 		}
@@ -866,7 +866,7 @@ func (e *Entity) UpdateNodeSetWithOutSiteNodeSet(callgraphIR *ir.Callgraph) {
 	nodeSet := make(map[*ir.Node]bool)
 	for n, _ := range e.OutNodeSet {
 		for _, eIn := range n.In {
-			if matchesEntityIR(eIn.Caller, e) {
+			if matchesEntityIR(eIn.Caller, e) && isSiteMatchIR(eIn.Site, e.OutSite) {
 				nodeSet[eIn.Caller] = true
 			}
 		}
