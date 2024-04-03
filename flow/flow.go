@@ -8,7 +8,6 @@ import (
 	"github.com/laindream/go-callflow-vis/config"
 	"github.com/laindream/go-callflow-vis/ir"
 	"github.com/laindream/go-callflow-vis/log"
-	"github.com/laindream/go-callflow-vis/mode"
 	"github.com/laindream/go-callflow-vis/render"
 	"github.com/laindream/go-callflow-vis/util"
 	"strconv"
@@ -106,10 +105,10 @@ func (f *Flow) UpdateMinGraph() error {
 	}
 	funcNameSet := make(map[string]bool)
 	for n, _ := range minSet {
-		if n.Func == nil {
+		if n.GetFunc() == nil {
 			continue
 		}
-		funcNameSet[n.Func.Name] = true
+		funcNameSet[n.GetFunc().GetName()] = true
 	}
 	f.callgraph = ir.GetFilteredCallgraph(f.callgraph, func(funcName string) bool {
 		return funcNameSet[funcName]
@@ -173,7 +172,7 @@ func (f *Flow) SavePaths(path string, separator string) error {
 				for _, e := range p {
 					path += fmt.Sprintf("%s", e.ReadableString())
 				}
-				t += fmt.Sprintf("%s%s%s%s%s", "\""+util.Escape(from.Func.Name)+"\"", separator, "\""+util.Escape(to.Func.Name)+"\"", separator, "\""+util.Escape(path)+"\"")
+				t += fmt.Sprintf("%s%s%s%s%s", "\""+util.Escape(from.GetFunc().GetName())+"\"", separator, "\""+util.Escape(to.GetFunc().GetName())+"\"", separator, "\""+util.Escape(path)+"\"")
 				t += "\n"
 			}
 		}
@@ -192,8 +191,8 @@ func (f *Flow) GetRenderGraph() *render.Graph {
 			for k2, _ := range l.ExamplePath[k] {
 				for _, e := range l.ExamplePath[k][k2] {
 					edges[e.String()] = e.ToRenderEdge(f.pkgPrefix)
-					nodes[e.Caller.Func.Addr] = e.Caller.ToRenderNode(f.pkgPrefix)
-					nodes[e.Callee.Func.Addr] = e.Callee.ToRenderNode(f.pkgPrefix)
+					nodes[e.GetCaller().GetFunc().GetAddr()] = e.GetCaller().ToRenderNode(f.pkgPrefix)
+					nodes[e.GetCallee().GetFunc().GetAddr()] = e.GetCallee().ToRenderNode(f.pkgPrefix)
 				}
 			}
 		}
@@ -201,20 +200,20 @@ func (f *Flow) GetRenderGraph() *render.Graph {
 			for k2, _ := range l.GetInToOutEdgeSet(f.callgraph)[k] {
 				for _, e := range l.GetInToOutEdgeSet(f.callgraph)[k][k2] {
 					for _, e2 := range e {
-						if e2.Callee == nil && e2.Caller == nil {
+						if e2.GetCallee() == nil && e2.GetCaller() == nil {
 							continue
 						}
-						if e2.Callee == nil && e2.Caller != nil {
-							nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode(f.pkgPrefix)
+						if e2.GetCallee() == nil && e2.GetCaller() != nil {
+							nodes[e2.GetCaller().GetFunc().GetAddr()] = e2.GetCaller().ToRenderNode(f.pkgPrefix)
 							continue
 						}
-						if e2.Callee != nil && e2.Caller == nil {
-							nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode(f.pkgPrefix)
+						if e2.GetCallee() != nil && e2.GetCaller() == nil {
+							nodes[e2.GetCallee().GetFunc().GetAddr()] = e2.GetCallee().ToRenderNode(f.pkgPrefix)
 							continue
 						}
 						edges[e2.String()] = e2.ToRenderEdge(f.pkgPrefix)
-						nodes[e2.Caller.Func.Addr] = e2.Caller.ToRenderNode(f.pkgPrefix)
-						nodes[e2.Callee.Func.Addr] = e2.Callee.ToRenderNode(f.pkgPrefix)
+						nodes[e2.GetCaller().GetFunc().GetAddr()] = e2.GetCaller().ToRenderNode(f.pkgPrefix)
+						nodes[e2.GetCallee().GetFunc().GetAddr()] = e2.GetCallee().ToRenderNode(f.pkgPrefix)
 					}
 				}
 			}
@@ -238,22 +237,22 @@ func (f *Flow) GetRenderGraph() *render.Graph {
 		}
 		if len(layerInSet) > 0 {
 			for n, _ := range layerInSet {
-				nodes[n.Func.Addr] = n.ToRenderNode(f.pkgPrefix)
-				nodes[n.Func.Addr].Set = setIndex
+				nodes[n.GetFunc().GetAddr()] = n.ToRenderNode(f.pkgPrefix)
+				nodes[n.GetFunc().GetAddr()].Set = setIndex
 			}
 			setIndex++
 		}
 		if len(layerNodeSet) > 0 {
 			for n, _ := range layerNodeSet {
-				nodes[n.Func.Addr] = n.ToRenderNode(f.pkgPrefix)
-				nodes[n.Func.Addr].Set = setIndex
+				nodes[n.GetFunc().GetAddr()] = n.ToRenderNode(f.pkgPrefix)
+				nodes[n.GetFunc().GetAddr()].Set = setIndex
 			}
 			setIndex++
 		}
 		if len(layerOutSet) > 0 {
 			for n, _ := range layerOutSet {
-				nodes[n.Func.Addr] = n.ToRenderNode(f.pkgPrefix)
-				nodes[n.Func.Addr].Set = setIndex
+				nodes[n.GetFunc().GetAddr()] = n.ToRenderNode(f.pkgPrefix)
+				nodes[n.GetFunc().GetAddr()].Set = setIndex
 			}
 			setIndex++
 		}
@@ -285,19 +284,19 @@ func (f *Flow) GetDot(isSimple bool) string {
 		for k, _ := range l.ExamplePath {
 			for k2, _ := range l.ExamplePath[k] {
 				if isSimple {
-					simpleEdge := getSimpleEdgeForPath(l.ExamplePath[k][k2])
+					simpleEdge := util.GetSimpleEdgeForPath(l.ExamplePath[k][k2])
 					if simpleEdge == nil {
 						continue
 					}
 					edges[simpleEdge.String()] = simpleEdge
-					nodes[simpleEdge.Caller.Func.Addr] = simpleEdge.Caller
-					nodes[simpleEdge.Callee.Func.Addr] = simpleEdge.Callee
+					nodes[simpleEdge.GetCaller().GetFunc().GetAddr()] = simpleEdge.GetCaller()
+					nodes[simpleEdge.GetCallee().GetFunc().GetAddr()] = simpleEdge.GetCallee()
 					continue
 				}
 				for _, e := range l.ExamplePath[k][k2] {
 					edges[e.String()] = e
-					nodes[e.Caller.Func.Addr] = e.Caller
-					nodes[e.Callee.Func.Addr] = e.Callee
+					nodes[e.GetCaller().GetFunc().GetAddr()] = e.GetCaller()
+					nodes[e.GetCallee().GetFunc().GetAddr()] = e.GetCallee()
 				}
 			}
 		}
@@ -305,41 +304,41 @@ func (f *Flow) GetDot(isSimple bool) string {
 			for k2, _ := range l.GetInToOutEdgeSet(f.callgraph)[k] {
 				for _, e := range l.GetInToOutEdgeSet(f.callgraph)[k][k2] {
 					for _, e2 := range e {
-						if e2.Callee == nil && e2.Caller == nil {
+						if e2.GetCallee() == nil && e2.GetCaller() == nil {
 							continue
 						}
-						if e2.Callee == nil && e2.Caller != nil {
-							nodes[e2.Caller.Func.Addr] = e2.Caller
+						if e2.GetCallee() == nil && e2.GetCaller() != nil {
+							nodes[e2.GetCaller().GetFunc().GetAddr()] = e2.GetCaller()
 							continue
 						}
-						if e2.Callee != nil && e2.Caller == nil {
-							nodes[e2.Callee.Func.Addr] = e2.Callee
+						if e2.GetCallee() != nil && e2.GetCaller() == nil {
+							nodes[e2.GetCallee().GetFunc().GetAddr()] = e2.GetCallee()
 							continue
 						}
 						edges[e2.String()] = e2
-						nodes[e2.Caller.Func.Addr] = e2.Caller
-						nodes[e2.Callee.Func.Addr] = e2.Callee
+						nodes[e2.GetCaller().GetFunc().GetAddr()] = e2.GetCaller()
+						nodes[e2.GetCallee().GetFunc().GetAddr()] = e2.GetCallee()
 					}
 				}
 			}
 		}
 	}
 	for _, n := range nodes {
-		if n.Func == nil {
+		if n.GetFunc() == nil {
 			continue
 		}
-		mainGraph.AddNode(graphName, strconv.Itoa(n.ID), map[string]string{
-			"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
+		mainGraph.AddNode(graphName, strconv.Itoa(n.GetID()), map[string]string{
+			"label": "\"" + util.Escape(util.GetFuncSimpleName(n.GetFunc().GetName(), f.pkgPrefix)) + "\"",
 		})
 	}
 	for _, e := range edges {
-		if e.Callee == nil || e.Caller == nil {
+		if e.GetCallee() == nil || e.GetCaller() == nil {
 			continue
 		}
-		callerID := strconv.Itoa(e.Caller.ID)
-		calleeID := strconv.Itoa(e.Callee.ID)
+		callerID := strconv.Itoa(e.GetCaller().GetID())
+		calleeID := strconv.Itoa(e.GetCallee().GetID())
 		mainGraph.AddEdge(callerID, calleeID, true, map[string]string{
-			"label": "\"" + util.Escape(util.GetSiteSimpleName(e.Site.Name, f.pkgPrefix)) + "\"",
+			"label": "\"" + util.Escape(util.GetSiteSimpleName(e.GetSite().GetName(), f.pkgPrefix)) + "\"",
 			//"constraint": "false",
 		})
 	}
@@ -366,9 +365,9 @@ func (f *Flow) GetDot(isSimple bool) string {
 			subGraphName := fmt.Sprintf("\"cluster_%d-in\"", i)
 			mainGraph.AddSubGraph(graphName, subGraphName, attr)
 			for n, _ := range layerInSet {
-				nodeID := strconv.Itoa(n.ID)
+				nodeID := strconv.Itoa(n.GetID())
 				mainGraph.AddNode(subGraphName, nodeID, map[string]string{
-					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
+					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.GetFunc().GetName(), f.pkgPrefix)) + "\"",
 					"color": "green",
 				})
 			}
@@ -377,9 +376,9 @@ func (f *Flow) GetDot(isSimple bool) string {
 			subGraphName := fmt.Sprintf("cluster_%d", i)
 			mainGraph.AddSubGraph(graphName, subGraphName, attr)
 			for n, _ := range layerNodeSet {
-				nodeID := strconv.Itoa(n.ID)
+				nodeID := strconv.Itoa(n.GetID())
 				mainGraph.AddNode(subGraphName, nodeID, map[string]string{
-					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
+					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.GetFunc().GetName(), f.pkgPrefix)) + "\"",
 					"color": "red",
 				})
 			}
@@ -388,9 +387,9 @@ func (f *Flow) GetDot(isSimple bool) string {
 			subGraphName := fmt.Sprintf("\"cluster_%d-out\"", i)
 			mainGraph.AddSubGraph(graphName, subGraphName, attr)
 			for n, _ := range layerOutSet {
-				nodeID := strconv.Itoa(n.ID)
+				nodeID := strconv.Itoa(n.GetID())
 				mainGraph.AddNode(subGraphName, nodeID, map[string]string{
-					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.Func.Name, f.pkgPrefix)) + "\"",
+					"label": "\"" + util.Escape(util.GetFuncSimpleName(n.GetFunc().GetName(), f.pkgPrefix)) + "\"",
 					"color": "yellow",
 				})
 			}
@@ -431,7 +430,7 @@ func (l *Layer) ResetLayer() {
 	l.NodeSet = nil
 	l.ExamplePath = nil
 	for _, e := range l.Entities {
-		e.ResetEntity()
+		e.ResetEntityData()
 	}
 }
 
@@ -481,43 +480,6 @@ func GetStartAndEndFromExamplePath(examplePath map[*ir.Node]map[*ir.Node][]*ir.E
 	return
 }
 
-func (l *Layer) GetNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
-	if callgraphIR == nil {
-		return nil
-	}
-	nodesSet := make(map[*ir.Node]bool)
-	for i, _ := range l.Entities {
-		for v, _ := range l.Entities[i].GetNodeSet(callgraphIR) {
-			if matchesEntityIR(v, l.Entities[i]) {
-				nodesSet[v] = true
-			}
-		}
-	}
-	l.NodeSet = nodesSet
-	return nodesSet
-}
-
-func (l *Layer) GetOutEdgeSet(callgraphIR *ir.Callgraph) map[string]*ir.Edge {
-	if callgraphIR == nil {
-		return nil
-	}
-	edgesSet := make(map[string]*ir.Edge)
-	for i, _ := range l.Entities {
-		if l.Entities[i].OutSite == nil {
-			continue
-		}
-		for n, _ := range l.Entities[i].OutNodeSet {
-			for _, e := range n.In {
-				if !isSiteMatchIR(e.Site, l.Entities[i].OutSite) {
-					continue
-				}
-				edgesSet[e.String()] = e
-			}
-		}
-	}
-	return edgesSet
-}
-
 func (l *Layer) GetOutAllNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 	if callgraphIR == nil {
 		return nil
@@ -542,27 +504,6 @@ func (l *Layer) GetOutAllNodeSetOnlyRead(callgraphIR *ir.Callgraph) map[*ir.Node
 		}
 	}
 	return nodesSet
-}
-
-func (l *Layer) GetInEdgeSet(callgraphIR *ir.Callgraph) map[string]*ir.Edge {
-	if callgraphIR == nil {
-		return nil
-	}
-	edgesSet := make(map[string]*ir.Edge)
-	for i, _ := range l.Entities {
-		if l.Entities[i].InSite == nil {
-			continue
-		}
-		for n, _ := range l.Entities[i].InNodeSet {
-			for _, e := range n.Out {
-				if !isSiteMatchIR(e.Site, l.Entities[i].InSite) {
-					continue
-				}
-				edgesSet[e.String()] = e
-			}
-		}
-	}
-	return edgesSet
 }
 
 func (l *Layer) GetInAllNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
@@ -606,7 +547,7 @@ func (e *Entity) String() string {
 
 func (e *Entity) GetInToOutEdgeSet(callgraphIR *ir.Callgraph) map[*ir.Node]map[*ir.Node][][]*ir.Edge {
 	inToOutSet := make(map[*ir.Node]map[*ir.Node][][]*ir.Edge)
-	if e.InSite == nil && e.OutSite == nil {
+	if !e.IsCheckIn() && !e.IsCheckOut() {
 		for k, _ := range e.GetNodeSet(callgraphIR) {
 			oneNodeEdge := &ir.Edge{Caller: k}
 			oneNodeEdgeSet := make(map[*ir.Node][][]*ir.Edge)
@@ -615,49 +556,49 @@ func (e *Entity) GetInToOutEdgeSet(callgraphIR *ir.Callgraph) map[*ir.Node]map[*
 		}
 		return inToOutSet
 	}
-	if e.InSite == nil && e.OutSite != nil {
+	if !e.IsCheckIn() && e.IsCheckOut() {
 		for k, _ := range e.OutNodeSet {
-			for _, eOut := range k.In {
-				if eOut.Caller != nil && e.GetNodeSet(callgraphIR)[eOut.Caller] {
-					nodeToOutEdge := &ir.Edge{Caller: eOut.Caller, Callee: k, Site: eOut.Site}
-					if _, ok := inToOutSet[eOut.Caller]; !ok {
-						inToOutSet[eOut.Caller] = make(map[*ir.Node][][]*ir.Edge)
+			for _, eOut := range k.GetIn() {
+				if eOut.GetCaller() != nil && e.GetNodeSet(callgraphIR)[eOut.GetCaller()] {
+					nodeToOutEdge := &ir.Edge{Caller: eOut.GetCaller(), Callee: k, Site: eOut.GetSite()}
+					if _, ok := inToOutSet[eOut.GetCaller()]; !ok {
+						inToOutSet[eOut.GetCaller()] = make(map[*ir.Node][][]*ir.Edge)
 					}
-					inToOutSet[eOut.Caller][k] = append(make([][]*ir.Edge, 0), append(make([]*ir.Edge, 0), nodeToOutEdge))
+					inToOutSet[eOut.GetCaller()][k] = append(make([][]*ir.Edge, 0), append(make([]*ir.Edge, 0), nodeToOutEdge))
 				}
 			}
 		}
 	}
-	if e.InSite != nil && e.OutSite == nil {
+	if e.IsCheckIn() && !e.IsCheckOut() {
 		for k, _ := range e.InNodeSet {
-			for _, eIn := range k.Out {
-				if eIn.Callee != nil && e.GetNodeSet(callgraphIR)[eIn.Callee] {
-					inToNodeEdge := &ir.Edge{Caller: k, Callee: eIn.Callee, Site: eIn.Site}
+			for _, eIn := range k.GetOut() {
+				if eIn.GetCallee() != nil && e.GetNodeSet(callgraphIR)[eIn.GetCallee()] {
+					inToNodeEdge := &ir.Edge{Caller: k, Callee: eIn.GetCallee(), Site: eIn.GetSite()}
 					if _, ok := inToOutSet[k]; !ok {
 						inToOutSet[k] = make(map[*ir.Node][][]*ir.Edge)
 					}
-					inToOutSet[k][eIn.Callee] = append(make([][]*ir.Edge, 0), append(make([]*ir.Edge, 0), inToNodeEdge))
+					inToOutSet[k][eIn.GetCallee()] = append(make([][]*ir.Edge, 0), append(make([]*ir.Edge, 0), inToNodeEdge))
 				}
 			}
 		}
 	}
-	if e.InSite != nil && e.OutSite != nil {
+	if e.IsCheckIn() && e.IsCheckOut() {
 		for k, _ := range e.OutNodeSet {
-			for _, eOut := range k.In {
-				if eOut.Caller != nil && e.GetNodeSet(callgraphIR)[eOut.Caller] {
-					node := eOut.Caller
-					for _, eIn := range node.In {
-						if eIn.Caller != nil && e.InNodeSet[eIn.Caller] {
-							inToNodeEdge := &ir.Edge{Caller: eIn.Caller, Callee: node, Site: eIn.Site}
-							nodeToOutEdge := &ir.Edge{Caller: node, Callee: k, Site: eOut.Site}
-							if _, ok := inToOutSet[eIn.Caller]; !ok {
-								inToOutSet[eIn.Caller] = make(map[*ir.Node][][]*ir.Edge)
+			for _, eOut := range k.GetIn() {
+				if eOut.GetCaller() != nil && e.GetNodeSet(callgraphIR)[eOut.GetCaller()] {
+					node := eOut.GetCaller()
+					for _, eIn := range node.GetIn() {
+						if eIn.GetCaller() != nil && e.InNodeSet[eIn.GetCaller()] {
+							inToNodeEdge := &ir.Edge{Caller: eIn.GetCaller(), Callee: node, Site: eIn.GetSite()}
+							nodeToOutEdge := &ir.Edge{Caller: node, Callee: k, Site: eOut.GetSite()}
+							if _, ok := inToOutSet[eIn.GetCaller()]; !ok {
+								inToOutSet[eIn.GetCaller()] = make(map[*ir.Node][][]*ir.Edge)
 							}
-							if _, ok := inToOutSet[eIn.Caller][k]; !ok {
-								inToOutSet[eIn.Caller][k] = make([][]*ir.Edge, 0)
+							if _, ok := inToOutSet[eIn.GetCaller()][k]; !ok {
+								inToOutSet[eIn.GetCaller()][k] = make([][]*ir.Edge, 0)
 							}
 							path := append(make([]*ir.Edge, 0), inToNodeEdge, nodeToOutEdge)
-							inToOutSet[eIn.Caller][k] = append(inToOutSet[eIn.Caller][k], path)
+							inToOutSet[eIn.GetCaller()][k] = append(inToOutSet[eIn.GetCaller()][k], path)
 						}
 					}
 				}
@@ -667,7 +608,7 @@ func (e *Entity) GetInToOutEdgeSet(callgraphIR *ir.Callgraph) map[*ir.Node]map[*
 	return inToOutSet
 }
 
-func (e *Entity) ResetEntity() {
+func (e *Entity) ResetEntityData() {
 	e.NodeSet = nil
 	e.InNodeSet = nil
 	e.OutNodeSet = nil
@@ -696,9 +637,9 @@ func (e *Entity) GetNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 		return e.NodeSet
 	}
 	nodesSet := make(map[*ir.Node]bool)
-	for _, v := range callgraphIR.Nodes {
-		if matchesEntityIR(v, e) {
-			nodesSet[v] = true
+	for _, n := range callgraphIR.Nodes {
+		if e.ShouldNodePass(n) {
+			nodesSet[n] = true
 		}
 	}
 	e.NodeSet = nodesSet
@@ -706,10 +647,7 @@ func (e *Entity) GetNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 }
 
 func (e *Entity) TrimNodeSet(nodeSet map[*ir.Node]bool, callgraphIR *ir.Callgraph) {
-	if e.NodeSet == nil {
-		e.GetNodeSet(callgraphIR)
-	}
-	for n, _ := range e.NodeSet {
+	for n, _ := range e.GetNodeSet(callgraphIR) {
 		if _, ok := nodeSet[n]; !ok {
 			delete(e.NodeSet, n)
 		}
@@ -717,32 +655,32 @@ func (e *Entity) TrimNodeSet(nodeSet map[*ir.Node]bool, callgraphIR *ir.Callgrap
 }
 
 func (e *Entity) TrimInNodeSet(in map[*ir.Node]bool, callgraphIR *ir.Callgraph) {
-	if e.InSite != nil {
+	if e.IsCheckIn() {
 		if e.InNodeSet == nil {
-			e.UpdateInSiteNodeSetWithNodeSet(callgraphIR)
+			e.UpdateInNodeSetWithNodeSet(callgraphIR)
 		}
 		for n, _ := range e.InNodeSet {
 			if _, ok := in[n]; !ok {
 				delete(e.InNodeSet, n)
 			}
 		}
-		e.UpdateNodeSetWithInSiteNodeSet(callgraphIR)
+		e.UpdateNodeSetWithInNodeSet(callgraphIR)
 		return
 	}
 	e.TrimNodeSet(in, callgraphIR)
 }
 
 func (e *Entity) TrimOutNodeSet(out map[*ir.Node]bool, callgraphIR *ir.Callgraph) {
-	if e.OutSite != nil {
+	if e.IsCheckOut() {
 		if e.OutNodeSet == nil {
-			e.UpdateOutSiteNodeSetWithNodeSet(callgraphIR)
+			e.UpdateOutNodeSetWithNodeSet(callgraphIR)
 		}
 		for n, _ := range e.OutNodeSet {
 			if _, ok := out[n]; !ok {
 				delete(e.OutNodeSet, n)
 			}
 		}
-		e.UpdateNodeSetWithOutSiteNodeSet(callgraphIR)
+		e.UpdateNodeSetWithOutNodeSet(callgraphIR)
 		return
 	}
 	e.TrimNodeSet(out, callgraphIR)
@@ -752,11 +690,11 @@ func (e *Entity) GetInAllNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 	if callgraphIR == nil {
 		return nil
 	}
-	if e.InSite == nil {
+	if !e.IsCheckIn() {
 		return e.GetNodeSet(callgraphIR)
 	}
 	if e.InNodeSet == nil {
-		e.UpdateInSiteNodeSetWithNodeSet(callgraphIR)
+		e.UpdateInNodeSetWithNodeSet(callgraphIR)
 	}
 	return e.InNodeSet
 }
@@ -765,7 +703,7 @@ func (e *Entity) GetInAllNodeSetOnlyRead(callgraphIR *ir.Callgraph) map[*ir.Node
 	if callgraphIR == nil {
 		return nil
 	}
-	if e.InSite == nil {
+	if !e.IsCheckIn() {
 		return e.NodeSet
 	}
 	return e.InNodeSet
@@ -775,11 +713,11 @@ func (e *Entity) GetOutAllNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 	if callgraphIR == nil {
 		return nil
 	}
-	if e.OutSite == nil {
+	if !e.IsCheckOut() {
 		return e.GetNodeSet(callgraphIR)
 	}
 	if e.OutNodeSet == nil {
-		e.UpdateOutSiteNodeSetWithNodeSet(callgraphIR)
+		e.UpdateOutNodeSetWithNodeSet(callgraphIR)
 	}
 	return e.OutNodeSet
 }
@@ -788,70 +726,68 @@ func (e *Entity) GetOutAllNodeSetOnlyRead(callgraphIR *ir.Callgraph) map[*ir.Nod
 	if callgraphIR == nil {
 		return nil
 	}
-	if e.OutSite == nil {
+	if !e.IsCheckOut() {
 		return e.NodeSet
 	}
 	return e.OutNodeSet
 }
 
-func (e *Entity) UpdateNodeSetWithInSiteNodeSet(callgraphIR *ir.Callgraph) {
+func (e *Entity) UpdateNodeSetWithInNodeSet(callgraphIR *ir.Callgraph) {
 	if callgraphIR == nil {
 		return
 	}
-	if e.InSite == nil {
+	if !e.IsCheckIn() {
 		e.GetNodeSet(callgraphIR)
 		return
 	}
 	if e.InNodeSet == nil {
-		e.UpdateInSiteNodeSetWithNodeSet(callgraphIR)
+		e.UpdateInNodeSetWithNodeSet(callgraphIR)
 	}
 	nodeSet := make(map[*ir.Node]bool)
 	for n, _ := range e.InNodeSet {
-		for _, eOut := range n.Out {
-			if matchesEntityIR(eOut.Callee, e) {
-				nodeSet[eOut.Callee] = true
+		for _, eOut := range n.GetOut() {
+			if e.ShouldInPass(eOut) && e.ShouldNodeSanityPass(eOut.GetCallee()) {
+				nodeSet[eOut.GetCallee()] = true
 			}
 		}
 	}
 	e.NodeSet = nodeSet
 }
 
-func (e *Entity) UpdateNodeSetWithOutSiteNodeSet(callgraphIR *ir.Callgraph) {
+func (e *Entity) UpdateNodeSetWithOutNodeSet(callgraphIR *ir.Callgraph) {
 	if callgraphIR == nil {
 		return
 	}
-	if e.OutSite == nil {
+	if !e.IsCheckOut() {
 		e.GetNodeSet(callgraphIR)
 		return
 	}
 	if e.OutNodeSet == nil {
-		e.UpdateOutSiteNodeSetWithNodeSet(callgraphIR)
+		e.UpdateOutNodeSetWithNodeSet(callgraphIR)
 	}
 	nodeSet := make(map[*ir.Node]bool)
 	for n, _ := range e.OutNodeSet {
-		for _, eIn := range n.In {
-			if matchesEntityIR(eIn.Caller, e) {
-				nodeSet[eIn.Caller] = true
+		for _, eIn := range n.GetIn() {
+			if e.ShouldOutPass(eIn) && e.ShouldNodeSanityPass(eIn.GetCaller()) {
+				nodeSet[eIn.GetCaller()] = true
 			}
 		}
 	}
 	e.NodeSet = nodeSet
 }
 
-func (e *Entity) UpdateInSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
+func (e *Entity) UpdateInNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 	if callgraphIR == nil {
 		return nil
 	}
-	if e.InSite == nil {
+	if !e.IsCheckIn() {
 		return make(map[*ir.Node]bool)
 	}
 	nodesSet := make(map[*ir.Node]bool)
 	for v, _ := range e.GetNodeSet(callgraphIR) {
-		if matchesEntityIR(v, e) {
-			for _, eIn := range v.In {
-				if isSiteMatchIR(eIn.Site, e.InSite) {
-					nodesSet[eIn.Caller] = true
-				}
+		for _, eIn := range v.GetIn() {
+			if e.ShouldInPass(eIn) {
+				nodesSet[eIn.GetCaller()] = true
 			}
 		}
 	}
@@ -859,96 +795,21 @@ func (e *Entity) UpdateInSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*
 	return nodesSet
 }
 
-func (e *Entity) UpdateOutSiteNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
+func (e *Entity) UpdateOutNodeSetWithNodeSet(callgraphIR *ir.Callgraph) map[*ir.Node]bool {
 	if callgraphIR == nil {
 		return nil
 	}
-	if e.OutSite == nil {
+	if !e.IsCheckOut() {
 		return make(map[*ir.Node]bool)
 	}
 	nodesSet := make(map[*ir.Node]bool)
 	for v, _ := range e.GetNodeSet(callgraphIR) {
-		if matchesEntityIR(v, e) {
-			for _, eOut := range v.Out {
-				if isSiteMatchIR(eOut.Site, e.OutSite) {
-					nodesSet[eOut.Callee] = true
-				}
+		for _, eOut := range v.GetOut() {
+			if e.ShouldOutPass(eOut) {
+				nodesSet[eOut.GetCallee()] = true
 			}
 		}
 	}
 	e.OutNodeSet = nodesSet
 	return nodesSet
-}
-
-func matchesEntityIR(n *ir.Node, entity *Entity) bool {
-	if n == nil || n.Func == nil || n.Func.Name == "" || n.Func.Signature == "" {
-		return false
-	}
-	if entity == nil || (entity.Name == nil && entity.InSite == nil && entity.OutSite == nil) {
-		return false
-	}
-	fName := n.Func.Name
-	nameCheckPass := true
-	if entity.Name != nil {
-		nameCheckPass = false
-		if entity.Name.Match(fName) {
-			nameCheckPass = true
-		}
-	}
-	inSiteCheckPass := true
-	if entity.InSite != nil {
-		inSiteCheckPass = false
-		for _, e := range n.In {
-			if isSiteMatchIR(e.Site, entity.InSite) {
-				inSiteCheckPass = true
-				break
-			}
-		}
-	}
-	outSiteCheckPass := true
-	if entity.OutSite != nil {
-		outSiteCheckPass = false
-		for _, e := range n.Out {
-			if isSiteMatchIR(e.Site, entity.OutSite) {
-				outSiteCheckPass = true
-				break
-			}
-		}
-
-	}
-	signatureCheckPass := true
-	if entity.Signature != nil {
-		signatureCheckPass = false
-		fSig := n.Func.Signature
-		if entity.Signature.Match(fSig) {
-			signatureCheckPass = true
-		}
-	}
-	if nameCheckPass && inSiteCheckPass && outSiteCheckPass && signatureCheckPass {
-		return true
-	}
-	return false
-}
-
-func isSiteMatchIR(s *ir.Site, site *mode.Mode) bool {
-	if s == nil || s.Name == "" {
-		return false
-	}
-	if site == nil {
-		return false
-	}
-	return site.Match(s.Name)
-}
-
-func getSimpleEdgeForPath(path []*ir.Edge) *ir.Edge {
-	if len(path) == 0 {
-		return nil
-	}
-	if len(path) == 1 {
-		return path[0]
-	}
-	caller := path[0].Caller
-	callee := path[len(path)-1].Callee
-	site := fmt.Sprintf("%s->...->%s", path[0].Site.Name, path[len(path)-1].Site.Name)
-	return &ir.Edge{Caller: caller, Callee: callee, Site: &ir.Site{Name: site}}
 }

@@ -57,7 +57,7 @@ func (f *Flow) findAllBipartite(isCallgraphJustReset bool) error {
 			for _, v2 := range v {
 				isCheckPass, issueFunc := f.checkCallEdgeChain(v2)
 				if !isCheckPass && issueFunc != nil {
-					issueFuncs[issueFunc.Addr] = true
+					issueFuncs[issueFunc.GetAddr()] = true
 				}
 			}
 		}
@@ -70,12 +70,12 @@ func (f *Flow) findAllBipartite(isCallgraphJustReset bool) error {
 		}
 		if i == 0 {
 			for j, _ := range f.Layers[i].Entities {
-				f.Layers[i].Entities[j].UpdateInSiteNodeSetWithNodeSet(f.callgraph)
+				f.Layers[i].Entities[j].UpdateInNodeSetWithNodeSet(f.callgraph)
 			}
 		}
 		if i == len(f.Layers)-2 {
 			for j, _ := range f.Layers[i+1].Entities {
-				f.Layers[i+1].Entities[j].UpdateOutSiteNodeSetWithNodeSet(f.callgraph)
+				f.Layers[i+1].Entities[j].UpdateOutNodeSetWithNodeSet(f.callgraph)
 			}
 		}
 	}
@@ -119,7 +119,7 @@ func (f *Flow) findAllBipartite(isCallgraphJustReset bool) error {
 			for k, _ := range f.Layers[i].Entities[j].GetNodeSet(f.callgraph) {
 				originalEntityNode[k] = true
 			}
-			f.Layers[i].Entities[j].UpdateInSiteNodeSetWithNodeSet(f.callgraph)
+			f.Layers[i].Entities[j].UpdateInNodeSetWithNodeSet(f.callgraph)
 			f.Layers[i].Entities[j].TrimInNodeSet(originalEntityIn, f.callgraph)
 			f.Layers[i].Entities[j].TrimNodeSet(originalEntityNode, f.callgraph)
 		}
@@ -167,7 +167,7 @@ func (f *Flow) skipNodeIR(issueFuncs map[string]bool) (hasFound, hasDoSkip bool)
 	}
 	var nodeToSkip *ir.Node
 	for k, v := range f.callgraph.Nodes {
-		if v.Func != nil && isFuncTarget(k) {
+		if v.GetFunc() != nil && isFuncTarget(k) {
 			nodeToSkip = v
 			break
 		}
@@ -178,31 +178,32 @@ func (f *Flow) skipNodeIR(issueFuncs map[string]bool) (hasFound, hasDoSkip bool)
 	hasFound = true
 	cacheIn := make([]*ir.Edge, 0)
 	cacheOut := make([]*ir.Edge, 0)
-	for _, v := range nodeToSkip.In {
+	for _, v := range nodeToSkip.GetIn() {
 		cacheIn = append(cacheIn, v)
 	}
-	for _, v := range nodeToSkip.Out {
+	for _, v := range nodeToSkip.GetOut() {
 		cacheOut = append(cacheOut, v)
 	}
 	f.callgraph = f.callgraph.DeleteNode(nodeToSkip)
 	for _, in := range cacheIn {
 		for _, out := range cacheOut {
-			if in.Caller == nil || out.Callee == nil ||
-				in.Caller.Func == nil || out.Callee.Func == nil {
+			if in.GetCaller().GetFunc() == nil || out.GetCallee().GetFunc() == nil {
 				continue
 			}
-			inCallerFuncAddr := in.Caller.Func.Addr
-			outCalleeFuncAddr := out.Callee.Func.Addr
+			inCallerFuncAddr := in.GetCaller().GetFunc().GetAddr()
+			outCalleeFuncAddr := out.GetCallee().GetFunc().GetAddr()
 			doMerge := false
 			if isFuncTarget(outCalleeFuncAddr) || isFuncTarget(inCallerFuncAddr) {
 				doMerge = true
 			}
-			if out.Callee.Func.Parent != nil && out.Callee.Func.Parent.Name == in.Caller.Func.Name {
+			if out.GetCallee().GetFunc().GetParent().GetName() != "" &&
+				out.GetCallee().GetFunc().GetParent().GetName() ==
+					in.GetCaller().GetFunc().GetName() {
 				doMerge = true
 			}
 			mergedSite := &ir.Site{
-				Name: fmt.Sprintf("%s->Skip(%s)->%s", in.Site.Name, nodeToSkip.Func.Name, out.Site.Name),
-				Addr: fmt.Sprintf("%s->Skip(%s)->%s", in.Site.Addr, nodeToSkip.Func.Addr, out.Site.Addr),
+				Name: fmt.Sprintf("%s->Skip(%s)->%s", in.GetSite().GetName(), nodeToSkip.GetFunc().GetName(), out.GetSite().GetName()),
+				Addr: fmt.Sprintf("%s->Skip(%s)->%s", in.GetSite().GetAddr(), nodeToSkip.GetFunc().GetAddr(), out.GetSite().GetAddr()),
 			}
 			if doMerge {
 				f.callgraph.AddEdge(inCallerFuncAddr, outCalleeFuncAddr, mergedSite)
@@ -226,29 +227,25 @@ func (f *Flow) checkCallEdgeChain(path []*ir.Edge) (isCheckPass bool, issueFunc 
 		if len(fChain) > 0 {
 			lastFunc = fChain[len(fChain)-1]
 		}
-		if path[i].Caller != nil &&
-			path[i].Caller.Func != nil &&
-			path[i].Caller.Func != lastFunc {
-			fChain = append(fChain, path[i].Caller.Func)
+		if path[i].GetCaller().GetFunc() != lastFunc {
+			fChain = append(fChain, path[i].GetCaller().GetFunc())
 		}
-		if path[i].Callee != nil &&
-			path[i].Callee.Func != nil &&
-			path[i].Callee.Func != lastFunc {
-			fChain = append(fChain, path[i].Callee.Func)
+		if path[i].GetCallee().GetFunc() != lastFunc {
+			fChain = append(fChain, path[i].GetCallee().GetFunc())
 		}
 	}
 	fChainMap := make(map[string]bool)
 	for i, _ := range fChain {
-		if fChain[i].Parent != nil {
-			if _, ok := fChainMap[fChain[i].Parent.Addr]; !ok {
+		if fChain[i].GetParent() != nil {
+			if _, ok := fChainMap[fChain[i].GetParent().GetAddr()]; !ok {
 				if i == 0 {
-					fChainMap[fChain[i].Parent.Addr] = true
+					fChainMap[fChain[i].GetParent().GetAddr()] = true
 				} else {
 					return false, fChain[i-1]
 				}
 			}
 		}
-		fChainMap[fChain[i].Addr] = true
+		fChainMap[fChain[i].GetAddr()] = true
 	}
 	return true, nil
 }
@@ -280,8 +277,8 @@ func (f *Flow) findExamplePath(src *ir.Node, dsts map[*ir.Node]bool,
 			examplePath[node] = node.GetPath()
 			continue
 		}
-		for _, e := range node.Out {
-			w := e.Callee
+		for _, e := range node.GetOut() {
+			w := e.GetCallee()
 			if len(containSet) == 0 || (len(containSet) != 0 && containSet[w]) {
 				if _, ok := visited[w]; ok {
 					continue
@@ -319,8 +316,8 @@ func (f *Flow) searchReachableNodesFromEnds(ends map[*ir.Node]bool, containSet m
 		stepMap := make(map[*ir.Node]bool)
 		for i := 0; i < layerCount; i++ {
 			v := q.Remove()
-			for _, edge := range v.In {
-				w := edge.Caller
+			for _, edge := range v.GetIn() {
+				w := edge.GetCaller()
 				if len(containSet) == 0 || (len(containSet) != 0 && containSet[w]) {
 					if _, ok := visited[w]; ok {
 						continue
@@ -359,8 +356,8 @@ func (f *Flow) searchReachableNodesFromStarts(starts map[*ir.Node]bool, containS
 		stepMap := make(map[*ir.Node]bool)
 		for i := 0; i < layerCount; i++ {
 			v := q.Remove()
-			for _, edge := range v.Out {
-				w := edge.Callee
+			for _, edge := range v.GetOut() {
+				w := edge.GetCallee()
 				if len(containSet) == 0 || (len(containSet) != 0 && containSet[w]) {
 					if _, ok := visited[w]; ok {
 						continue

@@ -314,23 +314,96 @@ type Func struct {
 	Signature string
 }
 
+func (f *Func) GetName() string {
+	if f == nil {
+		return ""
+	}
+	return f.Name
+}
+
+func (f *Func) GetAddr() string {
+	if f == nil {
+		return ""
+	}
+	return f.Addr
+}
+
+func (f *Func) GetParent() *Func {
+	if f == nil {
+		return nil
+	}
+	if f.Parent == nil {
+		return nil
+	}
+	return f.Parent
+}
+
+func (f *Func) GetSignature() string {
+	if f == nil {
+		return ""
+	}
+	return f.Signature
+}
+
 type Site struct {
 	Name string
 	Addr string
 }
 
+func (s *Site) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *Site) GetAddr() string {
+	if s == nil {
+		return ""
+	}
+	return s.Addr
+}
+
 type Node struct {
-	Func                *Func
-	ID                  int
-	In                  []*Edge
-	Out                 []*Edge
-	humanReadableInMap  map[string]*Edge
-	humanReadableOutMap map[string]*Edge
-	inMap               map[string]*Edge
-	outMap              map[string]*Edge
-	searched            bool
-	path                []*Edge
-	tags                map[string]bool
+	Func     *Func
+	ID       int
+	In       []*Edge
+	Out      []*Edge
+	inMap    map[string]*Edge
+	outMap   map[string]*Edge
+	searched bool
+	path     []*Edge
+}
+
+func (n *Node) GetFunc() *Func {
+	if n == nil {
+		return nil
+	}
+	if n.Func == nil {
+		return nil
+	}
+	return n.Func
+}
+
+func (n *Node) GetID() int {
+	if n == nil {
+		return -1
+	}
+	return n.ID
+}
+
+func (n *Node) GetIn() []*Edge {
+	if n == nil {
+		return nil
+	}
+	return n.In
+}
+
+func (n *Node) GetOut() []*Edge {
+	if n == nil {
+		return nil
+	}
+	return n.Out
 }
 
 func (n *Node) ToRenderNode(prefix string) *render.Node {
@@ -339,35 +412,6 @@ func (n *Node) ToRenderNode(prefix string) *render.Node {
 		Set:    -1,
 		Name:   util.GetFuncSimpleName(n.Func.Name, prefix),
 		Detail: n.Func.Name,
-	}
-}
-
-func (n *Node) ResetTags() {
-	n.tags = nil
-}
-
-func (n *Node) AddTag(tag string) {
-	if n.tags == nil {
-		n.tags = make(map[string]bool)
-	}
-	n.tags[tag] = true
-}
-
-func (n *Node) HasTag(tag string) bool {
-	if n.tags == nil {
-		return false
-	}
-	return n.tags[tag]
-}
-
-func (n *Node) UpdateHumanReadableMap() {
-	n.humanReadableInMap = make(map[string]*Edge)
-	for i, _ := range n.In {
-		n.humanReadableInMap[n.In[i].ReadableString()] = n.In[i]
-	}
-	n.humanReadableOutMap = make(map[string]*Edge)
-	for i, _ := range n.Out {
-		n.humanReadableOutMap[n.Out[i].ReadableString()] = n.Out[i]
 	}
 }
 
@@ -401,28 +445,6 @@ func (n *Node) AddOut(e *Edge) {
 		return
 	}
 	n.outMap[e.String()] = e
-	n.Out = append(n.Out, e)
-}
-
-func (n *Node) AddEnhancementIn(e *Edge) {
-	if len(n.humanReadableInMap) == 0 {
-		n.UpdateHumanReadableMap()
-	}
-	if _, ok := n.humanReadableInMap[e.ReadableString()]; ok {
-		return
-	}
-	n.humanReadableInMap[e.ReadableString()] = e
-	n.In = append(n.In, e)
-}
-
-func (n *Node) AddEnhancementOut(e *Edge) {
-	if len(n.humanReadableOutMap) == 0 {
-		n.UpdateHumanReadableMap()
-	}
-	if _, ok := n.humanReadableOutMap[e.ReadableString()]; ok {
-		return
-	}
-	n.humanReadableOutMap[e.ReadableString()] = e
 	n.Out = append(n.Out, e)
 }
 
@@ -494,6 +516,27 @@ type Edge struct {
 	Caller *Node
 	Site   *Site
 	Callee *Node
+}
+
+func (e *Edge) GetCaller() *Node {
+	if e == nil {
+		return nil
+	}
+	return e.Caller
+}
+
+func (e *Edge) GetSite() *Site {
+	if e == nil {
+		return nil
+	}
+	return e.Site
+}
+
+func (e *Edge) GetCallee() *Node {
+	if e == nil {
+		return nil
+	}
+	return e.Callee
 }
 
 func (e *Edge) ToRenderEdge(prefix string) *render.Edge {

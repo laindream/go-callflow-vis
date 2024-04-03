@@ -22,6 +22,12 @@ type Mode struct {
 }
 
 func (m *Mode) Match(s string) bool {
+	if s == "" {
+		return false
+	}
+	if m == nil {
+		return true
+	}
 	if len(m.Rules) == 0 {
 		return false
 	}
@@ -48,12 +54,20 @@ func (m *Mode) Match(s string) bool {
 }
 
 type Rule struct {
-	Exclude bool      `toml:"exclude" json:"exclude"`
-	Type    MatchType `toml:"type" json:"type"`
-	Content string    `toml:"content" json:"content"`
+	Exclude            bool      `toml:"exclude" json:"exclude"`
+	Type               MatchType `toml:"type" json:"type"`
+	Content            string    `toml:"content" json:"content"`
+	regexp             *regexp.Regexp
+	regexpCompileError error
 }
 
 func (m *Rule) Match(s string) (result bool) {
+	if s == "" {
+		return false
+	}
+	if m == nil {
+		return true
+	}
 	defer func() {
 		if m.Exclude {
 			result = !result
@@ -75,11 +89,12 @@ func (m *Rule) Match(s string) (result bool) {
 	case MatchTypeEqual:
 		return s == m.Content
 	case MatchTypeRegexp:
-		r, err := regexp.Compile(m.Content)
-		if err != nil {
-			return false
+		if m.regexp == nil && m.regexpCompileError == nil {
+			m.regexp, m.regexpCompileError = regexp.Compile(m.Content)
 		}
-		return r.MatchString(s)
+		if m.regexpCompileError != nil {
+			return m.regexp.MatchString(s)
+		}
 	}
 	return false
 }
@@ -87,6 +102,9 @@ func (m *Rule) Match(s string) (result bool) {
 type Set []*Mode
 
 func (ms Set) Match(s string) bool {
+	if s == "" {
+		return false
+	}
 	for _, m := range ms {
 		if m.Match(s) {
 			return true
