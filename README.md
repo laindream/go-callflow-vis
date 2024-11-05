@@ -52,6 +52,11 @@ package_prefix = "github.com/ethereum/go-ethereum/"
 rules = [{ type = "contain", content = "github.com/ethereum" }]
 
 
+# [optional] ignore is a set of rules to filter the functions to be ignored
+# [[ignore]]
+# rules = [{ type = "contain", content = "fmt" }]
+
+
 # layer is a set of matched functions used to generate flow graph. layers must be defined in order.
 [[layer]]
 name = "CMD Layer"
