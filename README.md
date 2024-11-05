@@ -47,6 +47,11 @@ Suppose you want to quickly analyze the call relationship to the MPT (Merkle Pat
 package_prefix = "github.com/ethereum/go-ethereum/"
 
 
+# [optional] focus is a set of rules to filter the functions to be analyzed
+[[focus]]
+rules = [{ type = "contain", content = "github.com/ethereum" }]
+
+
 # layer is a set of matched functions used to generate flow graph. layers must be defined in order.
 [[layer]]
 name = "CMD Layer"
